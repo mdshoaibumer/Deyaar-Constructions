@@ -1,0 +1,50 @@
+#!/bin/bash
+cat << 'INNER' > patch.txt
+import androidx.compose.ui.text.style.TextAlign
+// inside DashboardCards
+        // Project Cost Analysis
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("Project Cost Analysis", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Material Cost", style = MaterialTheme.typography.bodyMedium)
+                    Text(formatter.format(analysis.materialCost), fontWeight = FontWeight.SemiBold)
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Labour Cost", style = MaterialTheme.typography.bodyMedium)
+                    Text(formatter.format(analysis.labourCost), fontWeight = FontWeight.SemiBold)
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Other Expenses", style = MaterialTheme.typography.bodyMedium)
+                    Text(formatter.format(analysis.otherExpenses), fontWeight = FontWeight.SemiBold)
+                }
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Total Cost", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+                    Text(formatter.format(analysis.materialCost + analysis.labourCost + analysis.otherExpenses), fontWeight = FontWeight.Bold)
+                }
+                
+                if (analysis.estimatedProfit != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Estimated Profit", style = MaterialTheme.typography.bodyMedium)
+                        Text(formatter.format(analysis.estimatedProfit), fontWeight = FontWeight.SemiBold, color = Color(0xFF4CAF50))
+                    }
+                }
+                if (analysis.profitMargin != null) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Profit Margin", style = MaterialTheme.typography.bodyMedium)
+                        Text(String.format(Locale.getDefault(), "%.1f%%", analysis.profitMargin), fontWeight = FontWeight.SemiBold)
+                    }
+                }
+            }
+        }
+INNER

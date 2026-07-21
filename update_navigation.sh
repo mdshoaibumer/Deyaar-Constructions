@@ -1,0 +1,50 @@
+#!/bin/bash
+cat << 'INNER' > navigation_patch.txt
+import com.example.ui.screens.sitediary.SiteDiaryListScreen
+import com.example.ui.screens.sitediary.SiteDiaryListViewModel
+import com.example.ui.screens.sitediary.SiteDiaryListViewModelFactory
+import com.example.ui.screens.sitediary.SiteDiaryDetailsScreen
+import com.example.ui.screens.sitediary.SiteDiaryDetailsViewModel
+import com.example.ui.screens.sitediary.SiteDiaryDetailsViewModelFactory
+
+// Later in navigation graph...
+
+            composable(
+                route = Screen.SiteDiaryList.route,
+                arguments = listOf(navArgument("projectId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
+                val viewModel: SiteDiaryListViewModel = viewModel(
+                    factory = SiteDiaryListViewModelFactory(
+                        projectId,
+                        appContainer.getProjectByIdUseCase,
+                        appContainer.getSiteDiariesForProjectUseCase,
+                        appContainer.getOrCreateSiteDiaryForDateUseCase
+                    )
+                )
+                SiteDiaryListScreen(
+                    viewModel = viewModel,
+                    onNavigateToDiaryDetails = { diaryId -> navController.navigate(Screen.SiteDiaryDetails.createRoute(diaryId)) },
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            
+            composable(
+                route = Screen.SiteDiaryDetails.route,
+                arguments = listOf(navArgument("diaryId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val diaryId = backStackEntry.arguments?.getString("diaryId") ?: return@composable
+                val viewModel: SiteDiaryDetailsViewModel = viewModel(
+                    factory = SiteDiaryDetailsViewModelFactory(
+                        diaryId,
+                        appContainer.getProjectByIdUseCase,
+                        appContainer.getSiteDiaryDetailsUseCase,
+                        appContainer.saveSiteDiaryDetailsUseCase
+                    )
+                )
+                SiteDiaryDetailsScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+INNER

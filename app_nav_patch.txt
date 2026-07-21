@@ -1,0 +1,70 @@
+import com.example.ui.screens.finance.FinanceLedgerScreen
+import com.example.ui.screens.finance.FinanceLedgerViewModel
+import com.example.ui.screens.finance.FinanceLedgerViewModelFactory
+import com.example.ui.screens.finance.TransactionAddEditScreen
+import com.example.ui.screens.finance.TransactionAddEditViewModel
+import com.example.ui.screens.finance.TransactionAddEditViewModelFactory
+
+            composable(
+                route = Screen.FinanceLedger.route,
+                arguments = listOf(navArgument("projectId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
+                val viewModel: FinanceLedgerViewModel = viewModel(
+                    factory = FinanceLedgerViewModelFactory(
+                        projectId,
+                        appContainer.getProjectByIdUseCase,
+                        appContainer.getTransactionsForProjectUseCase
+                    )
+                )
+                FinanceLedgerScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToAddTransaction = { navController.navigate(Screen.TransactionAdd.createRoute(projectId)) },
+                    onNavigateToEditTransaction = { transactionId -> navController.navigate(Screen.TransactionEdit.createRoute(projectId, transactionId)) }
+                )
+            }
+            
+            composable(
+                route = Screen.TransactionAdd.route,
+                arguments = listOf(navArgument("projectId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
+                val viewModel: TransactionAddEditViewModel = viewModel(
+                    factory = TransactionAddEditViewModelFactory(
+                        null,
+                        projectId,
+                        appContainer.getTransactionByIdUseCase,
+                        appContainer.saveTransactionUseCase,
+                        appContainer.deleteTransactionUseCase
+                    )
+                )
+                TransactionAddEditScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            
+            composable(
+                route = Screen.TransactionEdit.route,
+                arguments = listOf(
+                    navArgument("projectId") { type = NavType.StringType },
+                    navArgument("transactionId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val projectId = backStackEntry.arguments?.getString("projectId") ?: return@composable
+                val transactionId = backStackEntry.arguments?.getString("transactionId") ?: return@composable
+                val viewModel: TransactionAddEditViewModel = viewModel(
+                    factory = TransactionAddEditViewModelFactory(
+                        transactionId,
+                        projectId,
+                        appContainer.getTransactionByIdUseCase,
+                        appContainer.saveTransactionUseCase,
+                        appContainer.deleteTransactionUseCase
+                    )
+                )
+                TransactionAddEditScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }

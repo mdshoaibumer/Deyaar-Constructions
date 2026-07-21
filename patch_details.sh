@@ -1,0 +1,4 @@
+#!/bin/bash
+sed -i 's/onNavigateToSiteDiaries: (String) -> Unit = {}/onNavigateToSiteDiaries: (String) -> Unit = {},\n    onNavigateToFinanceLedger: (String) -> Unit = {}/' app/src/main/java/com/example/ui/screens/project/ProjectDetailsScreen.kt
+sed -i 's/onNavigateToSiteDiaries = { onNavigateToSiteDiaries(project.id) }/onNavigateToSiteDiaries = { onNavigateToSiteDiaries(project.id) },\n                        onNavigateToFinanceLedger = { onNavigateToFinanceLedger(project.id) }/' app/src/main/java/com/example/ui/screens/project/ProjectDetailsScreen.kt
+sed -i 's/fun QuickActionsPlaceholder(onNavigateToSiteDiaries: () -> Unit = {}) {/fun QuickActionsPlaceholder(onNavigateToSiteDiaries: () -> Unit = {},\n    onNavigateToFinanceLedger: () -> Unit = {}) {/' app/src/main/java/com/example/ui/screens/project/ProjectDetailsScreen.kt
