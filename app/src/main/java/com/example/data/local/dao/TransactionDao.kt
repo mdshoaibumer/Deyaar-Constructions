@@ -1,0 +1,41 @@
+package com.example.data.local.dao
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import com.example.data.local.entity.TransactionEntity
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface TransactionDao {
+    @Query("SELECT * FROM transactions WHERE isDeleted = 0 ORDER BY date DESC, time DESC")
+    fun getAllTransactions(): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE projectId = :projectId AND isDeleted = 0 ORDER BY date DESC, time DESC")
+    fun getTransactionsForProject(projectId: String): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE id = :id")
+    suspend fun getTransactionById(id: String): TransactionEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTransaction(transaction: TransactionEntity)
+
+    @Query("UPDATE transactions SET isDeleted = 1, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun softDeleteTransaction(id: String, updatedAt: Long)
+
+    @Query("SELECT SUM(amountPaise) FROM transactions WHERE projectId = :projectId AND type = 'INCOME' AND isDeleted = 0")
+    fun getTotalIncomeForProject(projectId: String): Flow<Long?>
+
+    @Query("SELECT SUM(amountPaise) FROM transactions WHERE projectId = :projectId AND type = 'EXPENSE' AND isDeleted = 0")
+    fun getTotalExpenseForProject(projectId: String): Flow<Long?>
+
+    @Query("SELECT SUM(amountPaise) FROM transactions WHERE projectId = :projectId AND category = 'CLIENT_ADVANCE' AND isDeleted = 0")
+    fun getAdvanceReceivedForProject(projectId: String): Flow<Long?>
+
+    @Query("SELECT SUM(amountPaise) FROM transactions WHERE type = 'EXPENSE' AND isDeleted = 0")
+    fun getGlobalTotalExpenses(): Flow<Long?>
+
+    @Query("SELECT SUM(amountPaise) FROM transactions WHERE type = 'INCOME' AND isDeleted = 0")
+    fun getGlobalTotalIncome(): Flow<Long?>
+}
