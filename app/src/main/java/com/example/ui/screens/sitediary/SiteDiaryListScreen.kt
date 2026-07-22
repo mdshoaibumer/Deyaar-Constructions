@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -53,13 +54,17 @@ fun SiteDiaryListScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.ShimmerCardList(
+                modifier = Modifier.padding(paddingValues),
+                itemCount = 3
+            )
         } else if (uiState.diaries.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("No site diaries recorded yet", style = MaterialTheme.typography.bodyLarge)
-            }
+            com.example.ui.components.layout.EmptyState(
+                icon = Icons.Default.Book,
+                title = "No diary entries yet",
+                description = "Start recording daily site progress, weather, and activities.",
+                modifier = Modifier.padding(paddingValues)
+            )
         } else {
             LazyColumn(
                 modifier = Modifier

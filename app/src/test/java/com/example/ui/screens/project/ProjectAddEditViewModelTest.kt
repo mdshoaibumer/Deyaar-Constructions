@@ -85,7 +85,8 @@ class ProjectAddEditViewModelTest {
             saveProjectUseCase,
             saveProjectTimelineEventUseCase,
             saveMilestonesUseCase,
-            getClientsUseCase
+            getClientsUseCase,
+            androidx.lifecycle.SavedStateHandle()
         )
 
         viewModel.onEvent(ProjectAddEditEvent.NameChanged("Test Project"))

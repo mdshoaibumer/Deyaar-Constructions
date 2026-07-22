@@ -1,8 +1,11 @@
 package com.example.ui.screens.resource
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.domain.model.Supplier
 import com.example.domain.repository.ResourceRepository
 import com.example.core.util.CurrencyUtils
@@ -15,14 +18,15 @@ import java.util.UUID
 
 class SupplierAddEditViewModel(
     private val supplierId: String?,
-    private val repository: ResourceRepository
+    private val repository: ResourceRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SupplierAddEditUiState())
+    private val _uiState = MutableStateFlow(restoreState() ?: SupplierAddEditUiState())
     val uiState: StateFlow<SupplierAddEditUiState> = _uiState.asStateFlow()
 
     init {
-        if (supplierId != null) {
+        if (supplierId != null && !savedStateHandle.contains(KEY_NAME)) {
             loadSupplier(supplierId)
         }
     }
@@ -45,6 +49,7 @@ class SupplierAddEditViewModel(
                         isEditing = true
                     )
                 }
+                saveState()
             } else {
                 _uiState.update { it.copy(error = "Supplier not found", isLoading = false) }
             }
@@ -63,6 +68,31 @@ class SupplierAddEditViewModel(
             is SupplierEvent.Save -> saveSupplier()
             is SupplierEvent.Delete -> deleteSupplier()
         }
+        saveState()
+    }
+
+    private fun saveState() {
+        val state = _uiState.value
+        savedStateHandle[KEY_NAME] = state.name
+        savedStateHandle[KEY_PHONE] = state.phone
+        savedStateHandle[KEY_GST] = state.gst
+        savedStateHandle[KEY_ADDRESS] = state.address
+        savedStateHandle[KEY_MATERIAL_CATEGORIES] = state.materialCategories
+        savedStateHandle[KEY_OUTSTANDING_BALANCE] = state.outstandingBalance
+        savedStateHandle[KEY_NOTES] = state.notes
+    }
+
+    private fun restoreState(): SupplierAddEditUiState? {
+        val name = savedStateHandle.get<String>(KEY_NAME) ?: return null
+        return SupplierAddEditUiState(
+            name = name,
+            phone = savedStateHandle[KEY_PHONE] ?: "",
+            gst = savedStateHandle[KEY_GST] ?: "",
+            address = savedStateHandle[KEY_ADDRESS] ?: "",
+            materialCategories = savedStateHandle[KEY_MATERIAL_CATEGORIES] ?: "",
+            outstandingBalance = savedStateHandle[KEY_OUTSTANDING_BALANCE] ?: "0",
+            notes = savedStateHandle[KEY_NOTES] ?: ""
+        )
     }
 
     private fun saveSupplier() {
@@ -101,6 +131,16 @@ class SupplierAddEditViewModel(
             }
         }
     }
+
+    companion object {
+        private const val KEY_NAME = "supplier_name"
+        private const val KEY_PHONE = "supplier_phone"
+        private const val KEY_GST = "supplier_gst"
+        private const val KEY_ADDRESS = "supplier_address"
+        private const val KEY_MATERIAL_CATEGORIES = "supplier_materialCategories"
+        private const val KEY_OUTSTANDING_BALANCE = "supplier_outstandingBalance"
+        private const val KEY_NOTES = "supplier_notes"
+    }
 }
 
 data class SupplierAddEditUiState(
@@ -135,10 +175,11 @@ class SupplierAddEditViewModelFactory(
     private val supplierId: String?,
     private val repository: ResourceRepository
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(SupplierAddEditViewModel::class.java)) {
+            val savedStateHandle = extras.createSavedStateHandle()
             @Suppress("UNCHECKED_CAST")
-            return SupplierAddEditViewModel(supplierId, repository) as T
+            return SupplierAddEditViewModel(supplierId, repository, savedStateHandle) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

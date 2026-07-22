@@ -1,14 +1,16 @@
 package com.example.ui.components.layout
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.HomeRepairService
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.outlined.Dashboard
+import androidx.compose.material.icons.outlined.HomeRepairService
+import androidx.compose.material.icons.outlined.MonetizationOn
+import androidx.compose.material.icons.outlined.People
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -21,9 +23,49 @@ import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.ui.navigation.Screen
+
+private data class NavItem(
+    val route: String,
+    val label: String,
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector,
+    val contentDescription: String,
+)
+
+private val navItems = listOf(
+    NavItem(
+        route = Screen.Dashboard.route,
+        label = "Dashboard",
+        selectedIcon = Icons.Filled.Dashboard,
+        unselectedIcon = Icons.Outlined.Dashboard,
+        contentDescription = "Dashboard tab"
+    ),
+    NavItem(
+        route = Screen.Projects.route,
+        label = "Projects",
+        selectedIcon = Icons.Filled.HomeRepairService,
+        unselectedIcon = Icons.Outlined.HomeRepairService,
+        contentDescription = "Projects tab"
+    ),
+    NavItem(
+        route = Screen.Clients.route,
+        label = "Clients",
+        selectedIcon = Icons.Filled.People,
+        unselectedIcon = Icons.Outlined.People,
+        contentDescription = "Clients tab"
+    ),
+    NavItem(
+        route = Screen.Finance.route,
+        label = "Finance",
+        selectedIcon = Icons.Filled.MonetizationOn,
+        unselectedIcon = Icons.Outlined.MonetizationOn,
+        contentDescription = "Finance tab"
+    ),
+)
 
 @Composable
 fun AppScaffold(
@@ -35,13 +77,7 @@ fun AppScaffold(
     val navBackStackEntry = navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry.value?.destination?.route
 
-    val bottomNavRoutes = listOf(
-        Screen.Dashboard.route,
-        Screen.Projects.route,
-        Screen.Clients.route,
-        Screen.Finance.route
-    )
-
+    val bottomNavRoutes = navItems.map { it.route }
     val showBottomBar = currentRoute in bottomNavRoutes && windowSizeClass == WindowWidthSizeClass.Compact
 
     Scaffold(
@@ -53,41 +89,27 @@ fun AppScaffold(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        // Handle side rail for tablets here if windowSizeClass is Medium/Expanded
         content(innerPadding)
     }
 }
 
 @Composable
 fun DeyaarBottomNav(navController: NavController, currentRoute: String?) {
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = com.example.ui.theme.Dimens.elevationLevel3
-    ) {
-        NavigationBarItem(
-            selected = currentRoute == Screen.Dashboard.route,
-            onClick = { navigateToTopLevel(navController, Screen.Dashboard.route) },
-            icon = { Icon(Icons.Default.Dashboard, contentDescription = "Dashboard") },
-            label = { Text("Dashboard") }
-        )
-        NavigationBarItem(
-            selected = currentRoute == Screen.Projects.route,
-            onClick = { navigateToTopLevel(navController, Screen.Projects.route) },
-            icon = { Icon(Icons.Default.HomeRepairService, contentDescription = "Projects") },
-            label = { Text("Projects") }
-        )
-        NavigationBarItem(
-            selected = currentRoute == Screen.Clients.route,
-            onClick = { navigateToTopLevel(navController, Screen.Clients.route) },
-            icon = { Icon(Icons.Default.People, contentDescription = "Clients") },
-            label = { Text("Clients") }
-        )
-        NavigationBarItem(
-            selected = currentRoute == Screen.Finance.route,
-            onClick = { navigateToTopLevel(navController, Screen.Finance.route) },
-            icon = { Icon(Icons.Default.MonetizationOn, contentDescription = "Finance") },
-            label = { Text("Finance") }
-        )
+    NavigationBar {
+        navItems.forEach { item ->
+            val selected = currentRoute == item.route
+            NavigationBarItem(
+                selected = selected,
+                onClick = { navigateToTopLevel(navController, item.route) },
+                icon = {
+                    Icon(
+                        imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
+                        contentDescription = item.contentDescription
+                    )
+                },
+                label = { Text(item.label) }
+            )
+        }
     }
 }
 

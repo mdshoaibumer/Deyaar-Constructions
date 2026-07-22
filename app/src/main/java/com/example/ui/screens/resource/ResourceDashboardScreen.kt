@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material3.*
@@ -24,7 +25,8 @@ fun ResourceDashboardScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMaterials: () -> Unit,
     onNavigateToWorkers: () -> Unit,
-    onNavigateToSuppliers: () -> Unit
+    onNavigateToSuppliers: () -> Unit,
+    onNavigateToAttendance: () -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -46,6 +48,13 @@ fun ResourceDashboardScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium)
         ) {
+            ResourceCard(
+                title = "Daily Attendance",
+                description = "Mark daily attendance for all workers.",
+                icon = Icons.Default.CalendarToday,
+                onClick = onNavigateToAttendance
+            )
+
             ResourceCard(
                 title = "Materials & Inventory",
                 description = "Manage cement, steel, bricks, stock levels.",

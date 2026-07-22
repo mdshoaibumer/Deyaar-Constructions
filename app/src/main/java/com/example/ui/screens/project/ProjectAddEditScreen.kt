@@ -2,6 +2,7 @@ package com.example.ui.screens.project
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.Dimens
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -9,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -17,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import com.example.domain.model.ProjectCategory
 import com.example.domain.model.ProjectPriority
 import com.example.domain.model.ProjectStatus
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,10 +30,58 @@ fun ProjectAddEditScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showStartDatePicker by remember { mutableStateOf(false) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
             onNavigateBack()
+        }
+    }
+
+    // Start Date Picker Dialog
+    if (showStartDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = uiState.startDate ?: System.currentTimeMillis()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showStartDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        viewModel.onEvent(ProjectAddEditEvent.StartDateChanged(it))
+                    }
+                    showStartDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showStartDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    // Expected Completion Date Picker Dialog
+    if (showEndDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = uiState.expectedCompletionDate ?: System.currentTimeMillis()
+        )
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        viewModel.onEvent(ProjectAddEditEvent.ExpectedCompletionChanged(it))
+                    }
+                    showEndDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 
@@ -57,9 +110,7 @@ fun ProjectAddEditScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.FullScreenLoading()
         } else {
             Column(
                 modifier = Modifier
@@ -69,13 +120,10 @@ fun ProjectAddEditScreen(
                     .padding(Dimens.spaceMedium),
                 verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium)
             ) {
-                if (uiState.error != null) {
-                    Text(
-                        text = uiState.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
+                com.example.ui.components.layout.ErrorBanner(
+                    message = uiState.error ?: "",
+                    visible = uiState.error != null
+                )
 
                 OutlinedTextField(
                     value = uiState.projectNumber,
@@ -93,7 +141,7 @@ fun ProjectAddEditScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Client Selection (Simplified for now using a basic dropdown or just showing IDs)
+                // Client Selection
                 var clientDropdownExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = clientDropdownExpanded,
@@ -169,7 +217,36 @@ fun ProjectAddEditScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // Simplified status
+                // Start Date Picker
+                val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+                OutlinedTextField(
+                    value = uiState.startDate?.let { dateFormatter.format(Date(it)) } ?: "",
+                    onValueChange = {},
+                    label = { Text("Start Date *") },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { showStartDatePicker = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Select start date")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().clickable { showStartDatePicker = true }
+                )
+
+                // Expected Completion Date Picker
+                OutlinedTextField(
+                    value = uiState.expectedCompletionDate?.let { dateFormatter.format(Date(it)) } ?: "",
+                    onValueChange = {},
+                    label = { Text("Expected Completion Date") },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { showEndDatePicker = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Select completion date")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().clickable { showEndDatePicker = true }
+                )
+
+                // Status
                 var statusDropdownExpanded by remember { mutableStateOf(false) }
                 ExposedDropdownMenuBox(
                     expanded = statusDropdownExpanded,

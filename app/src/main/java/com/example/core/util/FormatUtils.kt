@@ -1,28 +1,70 @@
 package com.example.core.util
 
 import java.text.NumberFormat
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Currency
+import java.util.Date
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
+/**
+ * Date formatting and relative time utilities.
+ * Uses SimpleDateFormat for minSdk 24 compatibility.
+ */
 object DateUtils {
-    private val defaultZone = ZoneId.systemDefault()
-    private val dateFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy").withZone(defaultZone)
-    private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a").withZone(defaultZone)
-    private val dateTimeFormatter = DateTimeFormatter.ofPattern("MMM dd, yyyy - hh:mm a").withZone(defaultZone)
+
+    private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    private val timeFormat = SimpleDateFormat("hh:mm a", Locale.getDefault())
+    private val dateTimeFormat = SimpleDateFormat("MMM dd, yyyy - hh:mm a", Locale.getDefault())
 
     fun formatToDate(timestamp: Long): String {
-        return dateFormatter.format(Instant.ofEpochMilli(timestamp))
+        return dateFormat.format(Date(timestamp))
     }
 
     fun formatToTime(timestamp: Long): String {
-        return timeFormatter.format(Instant.ofEpochMilli(timestamp))
+        return timeFormat.format(Date(timestamp))
     }
 
     fun formatToDateTime(timestamp: Long): String {
-        return dateTimeFormatter.format(Instant.ofEpochMilli(timestamp))
+        return dateTimeFormat.format(Date(timestamp))
+    }
+
+    /**
+     * Returns a human-friendly relative time string.
+     * "Just now" < 1 min, "Xm ago" < 1h, "Xh ago" < 24h,
+     * "Yesterday", "Xd ago" < 7d, then full date.
+     */
+    fun getRelativeTimeString(timestampMillis: Long): String {
+        val now = System.currentTimeMillis()
+        val diff = now - timestampMillis
+
+        if (diff < 0) return formatToDate(timestampMillis)
+
+        val minutes = TimeUnit.MILLISECONDS.toMinutes(diff)
+        val hours = TimeUnit.MILLISECONDS.toHours(diff)
+        val days = TimeUnit.MILLISECONDS.toDays(diff)
+
+        return when {
+            minutes < 1 -> "Just now"
+            minutes < 60 -> "${minutes}m ago"
+            hours < 24 -> "${hours}h ago"
+            days == 1L -> "Yesterday"
+            days < 7 -> "${days}d ago"
+            else -> formatToDate(timestampMillis)
+        }
+    }
+
+    /**
+     * Returns a time-of-day greeting.
+     */
+    fun getGreeting(): String {
+        val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+        return when {
+            hour < 12 -> "Good morning"
+            hour < 17 -> "Good afternoon"
+            else -> "Good evening"
+        }
     }
 }
 

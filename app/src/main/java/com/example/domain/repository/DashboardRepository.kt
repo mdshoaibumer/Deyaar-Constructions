@@ -7,6 +7,11 @@ interface DashboardRepository {
     fun getTotalClientsCount(): Flow<Int>
     fun getTotalProjectsCount(): Flow<Int>
     fun getActiveProjectsCount(): Flow<Int>
+    fun getCompletedProjectsCount(): Flow<Int>
+    fun getOnHoldProjectsCount(): Flow<Int>
+    fun getTodaysLabourCount(): Flow<Int>
     fun getTotalExpenses(): Flow<Long>
+    fun getTotalContractValue(): Flow<Long>
+    fun getTotalReceived(): Flow<Long>
     fun getRecentProjects(limit: Int): Flow<List<Project>>
 }

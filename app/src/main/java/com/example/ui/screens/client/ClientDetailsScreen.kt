@@ -141,9 +141,7 @@ fun ClientDetailsScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.FullScreenLoading(modifier = Modifier.padding(paddingValues))
         } else if (uiState.client != null) {
             val client = uiState.client!!
             Column(
@@ -225,6 +223,30 @@ fun ClientDetailsScreen(
                         Spacer(modifier = Modifier.height(Dimens.spaceMedium))
                         val fullAddress = listOfNotNull(client.address, client.city, client.state, client.pincode).joinToString(", ")
                         DetailItem(icon = Icons.Outlined.LocationOn, label = "Address", value = fullAddress.takeIf { it.isNotBlank() } ?: "N/A")
+                    }
+                }
+
+                // Financial Summary Card
+                Spacer(modifier = Modifier.height(Dimens.spaceMedium))
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimens.spaceMedium),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    Column(modifier = Modifier.padding(Dimens.spaceMedium)) {
+                        Text("Financial Summary", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.height(Dimens.spaceMedium))
+                        // These values would ideally come from a use case that aggregates project data
+                        // For now showing the client notes which may contain contract references
+                        DetailItem(icon = Icons.Outlined.LocationOn, label = "Project Location", value = client.address ?: client.city ?: "See linked projects")
+                        if (!client.notes.isNullOrBlank()) {
+                            DetailItem(icon = Icons.Outlined.Phone, label = "Notes", value = client.notes)
+                        }
+                        Spacer(modifier = Modifier.height(Dimens.spaceSmall))
+                        Text(
+                            "View linked projects for contract values and payment details.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

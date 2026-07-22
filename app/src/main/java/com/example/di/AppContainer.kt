@@ -59,7 +59,8 @@ class AppContainer(private val context: Context) {
         DashboardRepositoryImpl(
             clientDao = database.clientDao(),
             projectDao = database.projectDao(),
-            transactionDao = database.transactionDao()
+            transactionDao = database.transactionDao(),
+            attendanceDao = database.attendanceDao()
         )
     }
 

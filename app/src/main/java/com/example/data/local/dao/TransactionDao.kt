@@ -38,4 +38,10 @@ interface TransactionDao {
 
     @Query("SELECT SUM(amountPaise) FROM transactions WHERE type = 'INCOME' AND isDeleted = 0")
     fun getGlobalTotalIncome(): Flow<Long?>
+
+    @Query("SELECT SUM(amountPaise) FROM transactions WHERE type = 'INCOME' AND isDeleted = 0 AND category IN ('CLIENT_ADVANCE', 'CLIENT_PAYMENT')")
+    fun getGlobalTotalReceived(): Flow<Long?>
+
+    @Query("SELECT * FROM transactions WHERE isDeleted = 0 AND category = 'LABOUR_PAYMENT' AND description LIKE '%' || :workerId || '%' ORDER BY date DESC")
+    fun getPaymentsForWorker(workerId: String): Flow<List<TransactionEntity>>
 }

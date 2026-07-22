@@ -31,23 +31,52 @@ class GetDashboardStatsUseCase(
             repository.getTotalClientsCount(),
             repository.getTotalProjectsCount(),
             repository.getActiveProjectsCount(),
-            repository.getTotalExpenses(),
-            repository.getRecentProjects(5)
-        ) { clients, totalProjects, activeProjects, expenses, recentProjects ->
-            DashboardStats(
-                totalClients = clients,
-                totalProjects = totalProjects,
-                activeProjects = activeProjects,
-                completedProjects = 0, // Mocked until feature implemented
-                projectsOnHold = 0,    // Mocked until feature implemented
-                todaysLabourCount = 0, // Mocked until feature implemented
-                totalExpensesPaise = expenses,
-                pendingPaymentsPaise = 0L, // Mocked until feature implemented
-                totalContractValuePaise = 0L, // Mocked until feature implemented
-                receivedAmountPaise = 0L,     // Mocked until feature implemented
-                netProfitPaise = 0L - expenses, // Mocked
-                recentProjects = recentProjects
-            )
+            repository.getCompletedProjectsCount(),
+            repository.getOnHoldProjectsCount()
+        ) { clients, totalProjects, active, completed, onHold ->
+            DashboardPartial1(clients, totalProjects, active, completed, onHold)
+        }.let { partial1Flow ->
+            // Second partial: group labour + expenses + contractValue
+            val partial2Flow = combine(
+                repository.getTodaysLabourCount(),
+                repository.getTotalExpenses(),
+                repository.getTotalContractValue()
+            ) { labour, expenses, contractValue ->
+                Triple(labour, expenses, contractValue)
+            }
+            // Final combine: partial1 + partial2 + received + recentProjects
+            combine(
+                partial1Flow,
+                partial2Flow,
+                repository.getTotalReceived(),
+                repository.getRecentProjects(5)
+            ) { p1, p2, received, recentProjects ->
+                val (labour, expenses, contractValue) = p2
+                val pendingPayments = maxOf(0L, contractValue - received)
+                val netProfit = received - expenses
+                DashboardStats(
+                    totalClients = p1.clients,
+                    totalProjects = p1.totalProjects,
+                    activeProjects = p1.active,
+                    completedProjects = p1.completed,
+                    projectsOnHold = p1.onHold,
+                    todaysLabourCount = labour,
+                    totalExpensesPaise = expenses,
+                    pendingPaymentsPaise = pendingPayments,
+                    totalContractValuePaise = contractValue,
+                    receivedAmountPaise = received,
+                    netProfitPaise = netProfit,
+                    recentProjects = recentProjects
+                )
+            }
         }
     }
 }
+
+private data class DashboardPartial1(
+    val clients: Int,
+    val totalProjects: Int,
+    val active: Int,
+    val completed: Int,
+    val onHold: Int
+)

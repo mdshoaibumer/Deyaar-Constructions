@@ -55,9 +55,7 @@ fun ClientAddEditScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.FullScreenLoading(modifier = Modifier.padding(paddingValues))
         } else {
             Column(
                 modifier = Modifier
@@ -67,14 +65,11 @@ fun ClientAddEditScreen(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium)
             ) {
-                if (uiState.error != null) {
-                    Text(
-                        text = uiState.error!!,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(top = Dimens.spaceSmall)
-                    )
-                }
+                // Error banner
+                com.example.ui.components.layout.ErrorBanner(
+                    message = uiState.error ?: "",
+                    visible = uiState.error != null
+                )
 
                 Text("Basic Information", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 

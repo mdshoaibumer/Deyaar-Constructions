@@ -107,26 +107,16 @@ fun ClientListScreen(
             }
 
             if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+                com.example.ui.components.layout.ShimmerCardList(itemCount = 5)
             } else if (uiState.clients.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            Icons.Default.Person,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                        Spacer(modifier = Modifier.height(Dimens.spaceMedium))
-                        Text(
-                            text = "No clients found",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                com.example.ui.components.layout.EmptyState(
+                    icon = Icons.Default.People,
+                    title = "No clients yet",
+                    description = if (uiState.searchQuery.isNotEmpty()) "No clients match your search."
+                    else "Add your first client to start managing contacts and projects.",
+                    actionLabel = if (uiState.searchQuery.isEmpty()) "Add Client" else null,
+                    onAction = if (uiState.searchQuery.isEmpty()) onNavigateToAddClient else null
+                )
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
@@ -136,7 +126,8 @@ fun ClientListScreen(
                         ClientItem(
                             client = client,
                             onClick = onNavigateToClientDetails,
-                            onFavoriteClick = viewModel::toggleFavoriteStatus
+                            onFavoriteClick = viewModel::toggleFavoriteStatus,
+                            modifier = Modifier.animateItem()
                         )
                     }
                 }
@@ -149,10 +140,11 @@ fun ClientListScreen(
 fun ClientItem(
     client: Client,
     onClick: (String) -> Unit,
-    onFavoriteClick: (Client) -> Unit
+    onFavoriteClick: (Client) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick(client.id) }
             .testTag("client_item_${client.id}"),

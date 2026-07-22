@@ -101,4 +101,23 @@ sealed class Screen(val route: String) {
         const val route = "supplier_edit/{supplierId}"
         fun createRoute(supplierId: String) = "supplier_edit/$supplierId"
     }
+
+    // Attendance
+    data object AttendanceDaily : Screen("attendance_daily")
+    object AttendanceHistory {
+        const val route = "attendance_history/{workerId}"
+        fun createRoute(workerId: String) = "attendance_history/$workerId"
+    }
+
+    // Material Usage
+    data object MaterialUsage : Screen("material_usage")
+
+    // Worker Payment History
+    object WorkerPaymentHistory {
+        const val route = "worker_payment_history/{workerId}"
+        fun createRoute(workerId: String) = "worker_payment_history/$workerId"
+    }
+
+    // Reports
+    data object Reports : Screen("reports")
 }

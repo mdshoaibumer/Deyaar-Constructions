@@ -72,7 +72,8 @@ class ClientAddEditViewModelTest {
             null,
             getClientByIdUseCase,
             saveClientUseCase,
-            validateClientPhoneUseCase
+            validateClientPhoneUseCase,
+            androidx.lifecycle.SavedStateHandle()
         )
 
         viewModel.onEvent(ClientAddEditEvent.NameChanged("John Doe"))
@@ -93,7 +94,8 @@ class ClientAddEditViewModelTest {
             null,
             getClientByIdUseCase,
             saveClientUseCase,
-            validateClientPhoneUseCase
+            validateClientPhoneUseCase,
+            androidx.lifecycle.SavedStateHandle()
         )
 
         viewModel.onEvent(ClientAddEditEvent.PhoneChanged("9876543210"))
@@ -125,7 +127,8 @@ class ClientAddEditViewModelTest {
             null,
             getClientByIdUseCase,
             saveClientUseCase,
-            validateClientPhoneUseCase
+            validateClientPhoneUseCase,
+            androidx.lifecycle.SavedStateHandle()
         )
 
         viewModel.onEvent(ClientAddEditEvent.NameChanged("John Doe"))

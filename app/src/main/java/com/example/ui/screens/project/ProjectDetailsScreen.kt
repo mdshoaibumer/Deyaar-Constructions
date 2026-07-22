@@ -67,9 +67,7 @@ fun ProjectDetailsScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.FullScreenLoading(modifier = Modifier.padding(paddingValues))
         } else if (uiState.project != null) {
             val project = uiState.project!!
             LazyColumn(

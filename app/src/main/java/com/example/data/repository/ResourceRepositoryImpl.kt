@@ -95,6 +95,14 @@ class ResourceRepositoryImpl(
         attendanceDao.insertAttendance(attendance.toEntity())
     }
 
+    override suspend fun saveAllAttendance(attendanceList: List<Attendance>) {
+        attendanceDao.insertAllAttendance(attendanceList.map { it.toEntity() })
+    }
+
+    override suspend fun deleteAttendance(id: String) {
+        attendanceDao.deleteAttendance(id)
+    }
+
     // Mappers
     private fun MaterialEntity.toDomain() = Material(
         id = id, name = name, category = category, unit = unit,

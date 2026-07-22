@@ -1,5 +1,9 @@
 package com.example.ui.theme
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
 // Blueprint Blue (Primary)
@@ -63,7 +67,55 @@ val OnErrorDark = Color(0xFF690005)
 val ErrorContainerDark = Color(0xFF93000A)
 val OnErrorContainerDark = Color(0xFFFFDAD6)
 
-// Custom Status Colors (can be added as CompositionLocals later)
-val SuccessGreen = Color(0xFF2E7D32)
-val WarningAmber = Color(0xFFF57F17)
-val InfoBlue = Color(0xFF0277BD)
+// ============================================================
+// Extended Color System — Semantic Status Colors
+// Accessible via DeyaarTheme.colors
+// ============================================================
+
+@Immutable
+data class DeyaarExtendedColors(
+    val success: Color,
+    val onSuccess: Color,
+    val successContainer: Color,
+    val onSuccessContainer: Color,
+    val warning: Color,
+    val onWarning: Color,
+    val warningContainer: Color,
+    val onWarningContainer: Color,
+    val info: Color,
+    val onInfo: Color,
+    val infoContainer: Color,
+    val onInfoContainer: Color,
+)
+
+val LightExtendedColors = DeyaarExtendedColors(
+    success = Color(0xFF2E7D32),
+    onSuccess = Color(0xFFFFFFFF),
+    successContainer = Color(0xFFC8E6C9),
+    onSuccessContainer = Color(0xFF1B5E20),
+    warning = Color(0xFFF57F17),
+    onWarning = Color(0xFFFFFFFF),
+    warningContainer = Color(0xFFFFF9C4),
+    onWarningContainer = Color(0xFF5D4037),
+    info = Color(0xFF0277BD),
+    onInfo = Color(0xFFFFFFFF),
+    infoContainer = Color(0xFFB3E5FC),
+    onInfoContainer = Color(0xFF01579B),
+)
+
+val DarkExtendedColors = DeyaarExtendedColors(
+    success = Color(0xFF81C784),
+    onSuccess = Color(0xFF1B5E20),
+    successContainer = Color(0xFF2E7D32),
+    onSuccessContainer = Color(0xFFC8E6C9),
+    warning = Color(0xFFFFD54F),
+    onWarning = Color(0xFF3E2723),
+    warningContainer = Color(0xFF5D4037),
+    onWarningContainer = Color(0xFFFFF9C4),
+    info = Color(0xFF4FC3F7),
+    onInfo = Color(0xFF01579B),
+    infoContainer = Color(0xFF0277BD),
+    onInfoContainer = Color(0xFFB3E5FC),
+)
+
+val LocalDeyaarColors = staticCompositionLocalOf { LightExtendedColors }

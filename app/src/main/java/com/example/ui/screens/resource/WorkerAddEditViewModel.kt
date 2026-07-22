@@ -1,8 +1,11 @@
 package com.example.ui.screens.resource
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.domain.model.Worker
 import com.example.domain.repository.ResourceRepository
 import com.example.core.util.CurrencyUtils
@@ -15,14 +18,15 @@ import java.util.UUID
 
 class WorkerAddEditViewModel(
     private val workerId: String?,
-    private val repository: ResourceRepository
+    private val repository: ResourceRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(WorkerAddEditUiState())
+    private val _uiState = MutableStateFlow(restoreState() ?: WorkerAddEditUiState())
     val uiState: StateFlow<WorkerAddEditUiState> = _uiState.asStateFlow()
 
     init {
-        if (workerId != null) {
+        if (workerId != null && !savedStateHandle.contains(KEY_FULL_NAME)) {
             loadWorker(workerId)
         }
     }
@@ -46,6 +50,7 @@ class WorkerAddEditViewModel(
                         isEditing = true
                     )
                 }
+                saveState()
             } else {
                 _uiState.update { it.copy(error = "Worker not found", isLoading = false) }
             }
@@ -64,6 +69,33 @@ class WorkerAddEditViewModel(
             is WorkerEvent.Save -> saveWorker()
             is WorkerEvent.Delete -> deleteWorker()
         }
+        saveState()
+    }
+
+    private fun saveState() {
+        val state = _uiState.value
+        savedStateHandle[KEY_FULL_NAME] = state.fullName
+        savedStateHandle[KEY_MOBILE_NUMBER] = state.mobileNumber
+        savedStateHandle[KEY_TRADE] = state.trade
+        savedStateHandle[KEY_DAILY_WAGE] = state.dailyWage
+        savedStateHandle[KEY_EXPERIENCE] = state.experience
+        savedStateHandle[KEY_EMERGENCY_CONTACT] = state.emergencyContact
+        savedStateHandle[KEY_ADDRESS] = state.address
+        savedStateHandle[KEY_STATUS] = state.status
+    }
+
+    private fun restoreState(): WorkerAddEditUiState? {
+        val fullName = savedStateHandle.get<String>(KEY_FULL_NAME) ?: return null
+        return WorkerAddEditUiState(
+            fullName = fullName,
+            mobileNumber = savedStateHandle[KEY_MOBILE_NUMBER] ?: "",
+            trade = savedStateHandle[KEY_TRADE] ?: "Mason",
+            dailyWage = savedStateHandle[KEY_DAILY_WAGE] ?: "",
+            experience = savedStateHandle[KEY_EXPERIENCE] ?: "",
+            emergencyContact = savedStateHandle[KEY_EMERGENCY_CONTACT] ?: "",
+            address = savedStateHandle[KEY_ADDRESS] ?: "",
+            status = savedStateHandle[KEY_STATUS] ?: "ACTIVE"
+        )
     }
 
     private fun saveWorker() {
@@ -104,6 +136,17 @@ class WorkerAddEditViewModel(
             }
         }
     }
+
+    companion object {
+        private const val KEY_FULL_NAME = "worker_fullName"
+        private const val KEY_MOBILE_NUMBER = "worker_mobileNumber"
+        private const val KEY_TRADE = "worker_trade"
+        private const val KEY_DAILY_WAGE = "worker_dailyWage"
+        private const val KEY_EXPERIENCE = "worker_experience"
+        private const val KEY_EMERGENCY_CONTACT = "worker_emergencyContact"
+        private const val KEY_ADDRESS = "worker_address"
+        private const val KEY_STATUS = "worker_status"
+    }
 }
 
 data class WorkerAddEditUiState(
@@ -139,10 +182,11 @@ class WorkerAddEditViewModelFactory(
     private val workerId: String?,
     private val repository: ResourceRepository
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(WorkerAddEditViewModel::class.java)) {
+            val savedStateHandle = extras.createSavedStateHandle()
             @Suppress("UNCHECKED_CAST")
-            return WorkerAddEditViewModel(workerId, repository) as T
+            return WorkerAddEditViewModel(workerId, repository, savedStateHandle) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

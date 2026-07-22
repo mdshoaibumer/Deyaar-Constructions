@@ -39,7 +39,7 @@ class DashboardViewModelTest {
             override fun getTotalClientsCount() = flowOf(0)
             override fun getTotalProjectsCount() = flowOf(0)
             override fun getActiveProjectsCount() = flowOf(0)
-            override fun getTotalExpenses() = flowOf(0.0)
+            override fun getTotalExpenses() = flowOf(0L)
             override fun getRecentProjects(limit: Int) = flowOf(emptyList<Project>())
         }
 
@@ -63,7 +63,7 @@ class DashboardViewModelTest {
             override fun getTotalClientsCount() = flowOf(5)
             override fun getTotalProjectsCount() = flowOf(3)
             override fun getActiveProjectsCount() = flowOf(2)
-            override fun getTotalExpenses() = flowOf(1500.0)
+            override fun getTotalExpenses() = flowOf(150000L)
             override fun getRecentProjects(limit: Int) = flowOf(emptyList<Project>())
         }
 
@@ -83,7 +83,7 @@ class DashboardViewModelTest {
         val successState = state as DashboardUiState.Success
         assertEquals(5, successState.stats.totalClients)
         assertEquals(3, successState.stats.totalProjects)
-        assertEquals(1500.0, successState.stats.totalExpenses, 0.0)
+        assertEquals(150000L, successState.stats.totalExpensesPaise)
         
         collectJob.cancel()
     }

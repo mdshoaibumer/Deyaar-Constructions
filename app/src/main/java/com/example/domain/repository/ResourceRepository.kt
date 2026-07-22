@@ -33,4 +33,6 @@ interface ResourceRepository {
     fun getAttendanceForWorker(workerId: String): Flow<List<Attendance>>
     fun getAttendanceForDate(date: Long): Flow<List<Attendance>>
     suspend fun saveAttendance(attendance: Attendance)
+    suspend fun saveAllAttendance(attendanceList: List<Attendance>)
+    suspend fun deleteAttendance(id: String)
 }

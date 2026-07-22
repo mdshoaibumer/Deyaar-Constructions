@@ -62,9 +62,10 @@ fun FinanceLedgerScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.ShimmerCardList(
+                modifier = Modifier.padding(paddingValues),
+                itemCount = 4
+            )
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -86,9 +87,13 @@ fun FinanceLedgerScreen(
 
                 if (uiState.filteredTransactions.isEmpty()) {
                     item {
-                        Box(modifier = Modifier.fillMaxWidth().padding(32.dp), contentAlignment = Alignment.Center) {
-                            Text("No transactions found", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
+                        com.example.ui.components.layout.EmptyState(
+                            icon = Icons.Default.AttachMoney,
+                            title = "No transactions yet",
+                            description = "Record income and expenses for this project.",
+                            actionLabel = "Add Transaction",
+                            onAction = onNavigateToAddTransaction
+                        )
                     }
                 } else {
                     // Group by date
@@ -147,7 +152,7 @@ fun DashboardCards(analysis: FinanceAnalysisData) {
             ) {
                 Column(modifier = Modifier.padding(Dimens.spaceMedium)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.ArrowDownward, contentDescription = null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.ArrowDownward, contentDescription = null, tint = com.example.ui.theme.DeyaarTheme.colors.success, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(Dimens.spaceMicro))
                         Text("Income", style = MaterialTheme.typography.bodyMedium)
                     }
@@ -213,7 +218,7 @@ fun DashboardCards(analysis: FinanceAnalysisData) {
                     Spacer(modifier = Modifier.height(12.dp))
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("Estimated Profit", style = MaterialTheme.typography.bodyMedium)
-                        Text(CurrencyUtils.formatPaise(analysis.estimatedProfitPaise), fontWeight = FontWeight.SemiBold, color = Color(0xFF4CAF50))
+                        Text(CurrencyUtils.formatPaise(analysis.estimatedProfitPaise), fontWeight = FontWeight.SemiBold, color = com.example.ui.theme.DeyaarTheme.colors.success)
                     }
                 }
                 if (analysis.profitMarginPercent != null) {
@@ -231,7 +236,7 @@ fun DashboardCards(analysis: FinanceAnalysisData) {
 @Composable
 fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
     val isIncome = transaction.type == TransactionType.INCOME
-    val amountColor = if (isIncome) Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+    val amountColor = if (isIncome) com.example.ui.theme.DeyaarTheme.colors.success else MaterialTheme.colorScheme.error
     val sign = if (isIncome) "+" else "-"
     val icon = if (isIncome) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward
 
@@ -251,7 +256,7 @@ fun TransactionItem(transaction: Transaction, onClick: () -> Unit) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
-                    .background(if (isIncome) Color(0xFFE8F5E9) else MaterialTheme.colorScheme.errorContainer),
+                    .background(if (isIncome) com.example.ui.theme.DeyaarTheme.colors.successContainer else MaterialTheme.colorScheme.errorContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(icon, contentDescription = null, tint = amountColor)

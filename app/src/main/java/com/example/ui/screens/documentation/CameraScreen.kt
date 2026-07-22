@@ -26,6 +26,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import com.example.core.util.ImageCompressor
+import com.example.core.util.StorageUtils
 import com.example.domain.model.Photo
 import com.example.domain.repository.DocumentationRepository
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -117,6 +119,11 @@ private fun CameraPreviewContent(
         
         FloatingActionButton(
             onClick = {
+                if (!StorageUtils.hasEnoughStorageForPhoto(context)) {
+                    // Show toast for low storage - silent failure prevention
+                    android.widget.Toast.makeText(context, "Low storage space. Please free up space.", android.widget.Toast.LENGTH_LONG).show()
+                    return@FloatingActionButton
+                }
                 takePhoto(
                     context = context,
                     imageCapture = imageCapture,
@@ -172,6 +179,8 @@ private fun takePhoto(
         executor,
         object : ImageCapture.OnImageSavedCallback {
             override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                // Compress and resize the image before returning the URI
+                ImageCompressor.compressImageFile(photoFile)
                 val savedUri = Uri.fromFile(photoFile)
                 onImageCaptured(savedUri)
             }

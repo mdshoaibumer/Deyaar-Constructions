@@ -3,28 +3,30 @@ package com.example.ui.screens.project
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.Dimens
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.core.util.CurrencyUtils
 import com.example.domain.model.Project
 import com.example.domain.model.ProjectStatus
-import java.text.NumberFormat
-import java.util.Locale
+import com.example.ui.components.layout.EmptyState
+import com.example.ui.components.layout.ShimmerCardList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +37,7 @@ fun ProjectListScreen(
     onNavigateBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var selectedStatus by remember { mutableStateOf<ProjectStatus?>(null) }
 
     Scaffold(
         topBar = {
@@ -48,7 +51,7 @@ fun ProjectListScreen(
                 actions = {
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(onClick = { expanded = true }) {
-                        Icon(Icons.Default.Menu, contentDescription = "Sort Options")
+                        Icon(Icons.Default.FilterList, contentDescription = "Sort Options")
                     }
                     DropdownMenu(
                         expanded = expanded,
@@ -73,55 +76,78 @@ fun ProjectListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Search field
             OutlinedTextField(
                 value = uiState.searchQuery,
                 onValueChange = { viewModel.onSearchQueryChanged(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(Dimens.spaceMedium),
+                    .padding(horizontal = Dimens.spaceMedium)
+                    .padding(top = Dimens.spaceSmall),
                 placeholder = { Text("Search projects...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 singleLine = true,
-                shape = RoundedCornerShape(16.dp)
+                shape = MaterialTheme.shapes.medium
             )
 
-            // Simple status filter for now
-            ScrollableTabRow(
-                selectedTabIndex = uiState.projects.indexOfFirst { false }.coerceAtLeast(0), // Dummy
-                edgePadding = 16.dp,
-                divider = {}
+            Spacer(modifier = Modifier.height(Dimens.spaceSmall))
+
+            // Status filter chips — proper horizontal scrollable row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = Dimens.spaceMedium, vertical = Dimens.spaceSmall),
+                horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSmall)
             ) {
                 FilterChip(
-                    selected = true,
-                    onClick = { viewModel.onStatusFilterSelected(null) },
-                    label = { Text("All") },
-                    modifier = Modifier.padding(end = Dimens.spaceSmall)
+                    selected = selectedStatus == null,
+                    onClick = {
+                        selectedStatus = null
+                        viewModel.onStatusFilterSelected(null)
+                    },
+                    label = { Text("All") }
                 )
                 ProjectStatus.entries.forEach { status ->
                     FilterChip(
-                        selected = false,
-                        onClick = { viewModel.onStatusFilterSelected(status) },
-                        label = { Text(status.displayName) },
-                        modifier = Modifier.padding(end = Dimens.spaceSmall)
+                        selected = selectedStatus == status,
+                        onClick = {
+                            selectedStatus = if (selectedStatus == status) null else status
+                            viewModel.onStatusFilterSelected(
+                                if (selectedStatus == status) status else null
+                            )
+                        },
+                        label = { Text(status.displayName) }
                     )
                 }
             }
 
-            if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+            // Content
+            when {
+                uiState.isLoading -> {
+                    ShimmerCardList(itemCount = 4)
                 }
-            } else if (uiState.projects.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No projects found", style = MaterialTheme.typography.bodyLarge)
+                uiState.projects.isEmpty() -> {
+                    EmptyState(
+                        icon = Icons.Default.Folder,
+                        title = "No projects yet",
+                        description = "Create your first project to start tracking progress, finances, and milestones.",
+                        actionLabel = "Add Project",
+                        onAction = onNavigateToAddProject
+                    )
                 }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(uiState.projects, key = { it.id }) { project ->
-                        ProjectCard(project = project, onClick = onNavigateToProjectDetails)
+                else -> {
+                    LazyColumn(
+                        contentPadding = PaddingValues(Dimens.spaceMedium),
+                        verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium)
+                    ) {
+                        items(uiState.projects, key = { it.id }) { project ->
+                            ProjectCard(
+                                project = project,
+                                onClick = onNavigateToProjectDetails,
+                                modifier = Modifier.animateItem()
+                            )
+                        }
                     }
                 }
             }
@@ -130,14 +156,15 @@ fun ProjectListScreen(
 }
 
 @Composable
-fun ProjectCard(project: Project, onClick: (String) -> Unit) {
-    val formatter = NumberFormat.getCurrencyInstance(java.util.Locale.Builder().setLanguage("en").setRegion("IN").build())
-    
+fun ProjectCard(project: Project, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick(project.id) },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(Dimens.spaceMedium)) {
             Row(
@@ -152,9 +179,9 @@ fun ProjectCard(project: Project, onClick: (String) -> Unit) {
                 )
                 AssistChip(
                     onClick = { },
-                    label = { Text(project.status.displayName) },
+                    label = { Text(project.status.displayName, style = MaterialTheme.typography.labelSmall) },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = when(project.status) {
+                        containerColor = when (project.status) {
                             ProjectStatus.ACTIVE -> MaterialTheme.colorScheme.primaryContainer
                             ProjectStatus.COMPLETED -> MaterialTheme.colorScheme.secondaryContainer
                             ProjectStatus.PLANNING -> MaterialTheme.colorScheme.tertiaryContainer
@@ -174,26 +201,46 @@ fun ProjectCard(project: Project, onClick: (String) -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(Dimens.spaceMedium))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text("Contract Value", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(project.contractValuePaise?.let { CurrencyUtils.formatPaise(it) } ?: "N/A", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Contract Value",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        project.contractValuePaise?.let { CurrencyUtils.formatPaise(it) } ?: "N/A",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
                 Column(horizontalAlignment = Alignment.End) {
-                    Text("Progress", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text("${project.progress}%", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "Progress",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        "${project.progress}%",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
             Spacer(modifier = Modifier.height(Dimens.spaceSmall))
             LinearProgressIndicator(
                 progress = { project.progress / 100f },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primaryContainer
+                trackColor = MaterialTheme.colorScheme.primaryContainer,
+                strokeCap = StrokeCap.Round,
+                drawStopIndicator = {}
             )
         }
     }

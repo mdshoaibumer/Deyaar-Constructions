@@ -1,8 +1,11 @@
 package com.example.ui.screens.project
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.domain.model.Client
 import com.example.domain.model.Project
 import com.example.domain.model.ProjectCategory
@@ -30,18 +33,20 @@ class ProjectAddEditViewModel(
     private val saveProjectUseCase: SaveProjectUseCase,
     private val saveProjectTimelineEventUseCase: SaveProjectTimelineEventUseCase,
     private val saveMilestonesUseCase: SaveMilestonesUseCase,
-    private val getClientsUseCase: GetClientsUseCase
+    private val getClientsUseCase: GetClientsUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(ProjectAddEditUiState())
+    private val _uiState = MutableStateFlow(restoreState() ?: ProjectAddEditUiState())
     val uiState: StateFlow<ProjectAddEditUiState> = _uiState.asStateFlow()
 
     init {
         loadClients()
-        if (projectId != null) {
+        if (projectId != null && !savedStateHandle.contains(KEY_PROJECT_NUMBER)) {
             loadProject(projectId)
-        } else {
+        } else if (projectId == null && !savedStateHandle.contains(KEY_PROJECT_NUMBER)) {
             _uiState.update { it.copy(projectNumber = generateProjectNumber()) }
+            saveState()
         }
     }
 
@@ -81,6 +86,7 @@ class ProjectAddEditViewModel(
                         isLoading = false
                     )
                 }
+                saveState()
             } else {
                 _uiState.update { it.copy(isLoading = false, error = "Project not found") }
             }
@@ -104,6 +110,51 @@ class ProjectAddEditViewModel(
             is ProjectAddEditEvent.ProgressChanged -> _uiState.update { it.copy(progress = event.progress) }
             is ProjectAddEditEvent.Save -> saveProject()
         }
+        saveState()
+    }
+
+    private fun saveState() {
+        val state = _uiState.value
+        savedStateHandle[KEY_PROJECT_NUMBER] = state.projectNumber
+        savedStateHandle[KEY_NAME] = state.name
+        savedStateHandle[KEY_CLIENT_ID] = state.clientId
+        savedStateHandle[KEY_CATEGORY] = state.category.name
+        savedStateHandle[KEY_ADDRESS] = state.address
+        savedStateHandle[KEY_CONTRACT_VALUE] = state.contractValue
+        savedStateHandle[KEY_ESTIMATED_BUDGET] = state.estimatedBudget
+        savedStateHandle[KEY_START_DATE] = state.startDate
+        savedStateHandle[KEY_EXPECTED_COMPLETION_DATE] = state.expectedCompletionDate
+        savedStateHandle[KEY_STATUS] = state.status.name
+        savedStateHandle[KEY_PRIORITY] = state.priority.name
+        savedStateHandle[KEY_ENGINEER_IN_CHARGE] = state.engineerInCharge
+        savedStateHandle[KEY_NOTES] = state.notes
+        savedStateHandle[KEY_PROGRESS] = state.progress
+    }
+
+    private fun restoreState(): ProjectAddEditUiState? {
+        val projectNumber = savedStateHandle.get<String>(KEY_PROJECT_NUMBER) ?: return null
+        return ProjectAddEditUiState(
+            projectNumber = projectNumber,
+            name = savedStateHandle[KEY_NAME] ?: "",
+            clientId = savedStateHandle.get<String>(KEY_CLIENT_ID),
+            category = savedStateHandle.get<String>(KEY_CATEGORY)?.let {
+                try { ProjectCategory.valueOf(it) } catch (_: Exception) { ProjectCategory.HOUSE }
+            } ?: ProjectCategory.HOUSE,
+            address = savedStateHandle[KEY_ADDRESS] ?: "",
+            contractValue = savedStateHandle[KEY_CONTRACT_VALUE] ?: "",
+            estimatedBudget = savedStateHandle[KEY_ESTIMATED_BUDGET] ?: "",
+            startDate = savedStateHandle.get<Long>(KEY_START_DATE),
+            expectedCompletionDate = savedStateHandle.get<Long>(KEY_EXPECTED_COMPLETION_DATE),
+            status = savedStateHandle.get<String>(KEY_STATUS)?.let {
+                try { ProjectStatus.valueOf(it) } catch (_: Exception) { ProjectStatus.PLANNING }
+            } ?: ProjectStatus.PLANNING,
+            priority = savedStateHandle.get<String>(KEY_PRIORITY)?.let {
+                try { ProjectPriority.valueOf(it) } catch (_: Exception) { ProjectPriority.MEDIUM }
+            } ?: ProjectPriority.MEDIUM,
+            engineerInCharge = savedStateHandle[KEY_ENGINEER_IN_CHARGE] ?: "",
+            notes = savedStateHandle[KEY_NOTES] ?: "",
+            progress = savedStateHandle[KEY_PROGRESS] ?: "0"
+        )
     }
 
     private fun saveProject() {
@@ -152,7 +203,6 @@ class ProjectAddEditViewModel(
                 saveProjectUseCase(project)
             
                 if (isNew) {
-                    // Add default milestones
                     val defaultMilestones = listOf(
                         "Foundation", "Columns", "Roof", "Plastering", 
                         "Flooring", "Painting", "Electrical", "Plumbing", "Finishing"
@@ -181,7 +231,7 @@ class ProjectAddEditViewModel(
                         )
                     )
                 } else {
-                     saveProjectTimelineEventUseCase(
+                    saveProjectTimelineEventUseCase(
                         ProjectTimelineEvent(
                             id = UUID.randomUUID().toString(),
                             projectId = id,
@@ -198,6 +248,23 @@ class ProjectAddEditViewModel(
                 _uiState.update { it.copy(error = e.message ?: "An error occurred") }
             }
         }
+    }
+
+    companion object {
+        private const val KEY_PROJECT_NUMBER = "project_projectNumber"
+        private const val KEY_NAME = "project_name"
+        private const val KEY_CLIENT_ID = "project_clientId"
+        private const val KEY_CATEGORY = "project_category"
+        private const val KEY_ADDRESS = "project_address"
+        private const val KEY_CONTRACT_VALUE = "project_contractValue"
+        private const val KEY_ESTIMATED_BUDGET = "project_estimatedBudget"
+        private const val KEY_START_DATE = "project_startDate"
+        private const val KEY_EXPECTED_COMPLETION_DATE = "project_expectedCompletionDate"
+        private const val KEY_STATUS = "project_status"
+        private const val KEY_PRIORITY = "project_priority"
+        private const val KEY_ENGINEER_IN_CHARGE = "project_engineerInCharge"
+        private const val KEY_NOTES = "project_notes"
+        private const val KEY_PROGRESS = "project_progress"
     }
 }
 
@@ -247,8 +314,9 @@ class ProjectAddEditViewModelFactory(
     private val saveMilestonesUseCase: SaveMilestonesUseCase,
     private val getClientsUseCase: GetClientsUseCase
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(ProjectAddEditViewModel::class.java)) {
+            val savedStateHandle = extras.createSavedStateHandle()
             @Suppress("UNCHECKED_CAST")
             return ProjectAddEditViewModel(
                 projectId,
@@ -256,7 +324,8 @@ class ProjectAddEditViewModelFactory(
                 saveProjectUseCase,
                 saveProjectTimelineEventUseCase,
                 saveMilestonesUseCase,
-                getClientsUseCase
+                getClientsUseCase,
+                savedStateHandle
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

@@ -51,6 +51,8 @@ import com.example.ui.screens.finance.TransactionAddEditViewModel
 import com.example.ui.screens.finance.TransactionAddEditViewModelFactory
 import com.example.ui.screens.resource.*
 import com.example.ui.screens.documentation.*
+import com.example.ui.screens.attendance.*
+import com.example.ui.screens.reports.*
 
 
 
@@ -64,10 +66,50 @@ fun AppNavigation(
         navController = navController,
         startDestination = Screen.Splash.route,
         modifier = Modifier.fillMaxSize(),
-        enterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300)) + androidx.compose.animation.slideInHorizontally(initialOffsetX = { it / 8 }) },
-        exitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300)) + androidx.compose.animation.slideOutHorizontally(targetOffsetX = { -it / 8 }) },
-        popEnterTransition = { androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(300)) + androidx.compose.animation.slideInHorizontally(initialOffsetX = { -it / 8 }) },
-        popExitTransition = { androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300)) + androidx.compose.animation.slideOutHorizontally(targetOffsetX = { it / 8 }) }
+        enterTransition = {
+            androidx.compose.animation.fadeIn(
+                animationSpec = androidx.compose.animation.core.tween(300)
+            ) + androidx.compose.animation.slideInHorizontally(
+                initialOffsetX = { it / 6 },
+                animationSpec = androidx.compose.animation.core.spring(
+                    dampingRatio = 0.9f,
+                    stiffness = 500f
+                )
+            )
+        },
+        exitTransition = {
+            androidx.compose.animation.fadeOut(
+                animationSpec = androidx.compose.animation.core.tween(200)
+            ) + androidx.compose.animation.slideOutHorizontally(
+                targetOffsetX = { -it / 6 },
+                animationSpec = androidx.compose.animation.core.spring(
+                    dampingRatio = 0.9f,
+                    stiffness = 500f
+                )
+            )
+        },
+        popEnterTransition = {
+            androidx.compose.animation.fadeIn(
+                animationSpec = androidx.compose.animation.core.tween(300)
+            ) + androidx.compose.animation.slideInHorizontally(
+                initialOffsetX = { -it / 6 },
+                animationSpec = androidx.compose.animation.core.spring(
+                    dampingRatio = 0.9f,
+                    stiffness = 500f
+                )
+            )
+        },
+        popExitTransition = {
+            androidx.compose.animation.fadeOut(
+                animationSpec = androidx.compose.animation.core.tween(200)
+            ) + androidx.compose.animation.slideOutHorizontally(
+                targetOffsetX = { it / 6 },
+                animationSpec = androidx.compose.animation.core.spring(
+                    dampingRatio = 0.9f,
+                    stiffness = 500f
+                )
+            )
+        }
     ) {
         composable(Screen.Splash.route) {
             SplashScreen(onSplashFinished = {
@@ -109,7 +151,9 @@ fun AppNavigation(
                     viewModel = viewModel,
                     onNavigateToClients = { navController.navigate(Screen.Clients.route) },
                     onNavigateToProjects = { navController.navigate(Screen.Projects.route) },
-                    onNavigateToResources = { navController.navigate(Screen.ResourceDashboard.route) }
+                    onNavigateToResources = { navController.navigate(Screen.ResourceDashboard.route) },
+                    onNavigateToReports = { navController.navigate(Screen.Reports.route) },
+                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
                 )
             }
 
@@ -362,8 +406,27 @@ fun AppNavigation(
                 )
             }
 
-            composable(Screen.Finance.route) { PlaceholderScreen("Finance") }
-            composable(Screen.Settings.route) { PlaceholderScreen("Settings") }
+            composable(Screen.Finance.route) {
+                val viewModel: com.example.ui.screens.reports.ReportsViewModel = viewModel(
+                    factory = com.example.ui.screens.reports.ReportsViewModelFactory(
+                        appContainer.transactionRepository,
+                        appContainer.projectRepository,
+                        appContainer.resourceRepository
+                    )
+                )
+                com.example.ui.screens.reports.ReportsScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+            composable(Screen.Settings.route) {
+                com.example.ui.screens.settings.SettingsScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToPinSetup = {
+                        navController.navigate(Screen.PinSetup.route)
+                    }
+                )
+            }
 
             composable(
                 route = Screen.DocumentationDashboard.route,
@@ -424,7 +487,8 @@ fun AppNavigation(
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToMaterials = { navController.navigate(Screen.MaterialList.route) },
                     onNavigateToWorkers = { navController.navigate(Screen.WorkerList.route) },
-                    onNavigateToSuppliers = { navController.navigate(Screen.SupplierList.route) }
+                    onNavigateToSuppliers = { navController.navigate(Screen.SupplierList.route) },
+                    onNavigateToAttendance = { navController.navigate(Screen.AttendanceDaily.route) }
                 )
             }
 
@@ -531,6 +595,72 @@ fun AppNavigation(
                     factory = SupplierAddEditViewModelFactory(supplierId, appContainer.resourceRepository)
                 )
                 SupplierAddEditScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            // Attendance
+            composable(Screen.AttendanceDaily.route) {
+                val viewModel: AttendanceViewModel = viewModel(
+                    factory = AttendanceViewModelFactory(appContainer.resourceRepository)
+                )
+                AttendanceDailyScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(
+                route = Screen.AttendanceHistory.route,
+                arguments = listOf(navArgument("workerId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val workerId = backStackEntry.arguments?.getString("workerId") ?: return@composable
+                val viewModel: AttendanceHistoryViewModel = viewModel(
+                    factory = AttendanceHistoryViewModelFactory(workerId, appContainer.resourceRepository)
+                )
+                AttendanceHistoryScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            // Material Usage
+            composable(Screen.MaterialUsage.route) {
+                val viewModel: MaterialUsageViewModel = viewModel(
+                    factory = MaterialUsageViewModelFactory(null, appContainer.resourceRepository)
+                )
+                MaterialUsageScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            // Worker Payment History
+            composable(
+                route = Screen.WorkerPaymentHistory.route,
+                arguments = listOf(navArgument("workerId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val workerId = backStackEntry.arguments?.getString("workerId") ?: return@composable
+                val viewModel: WorkerPaymentHistoryViewModel = viewModel(
+                    factory = WorkerPaymentHistoryViewModelFactory(workerId, appContainer.resourceRepository, appContainer.transactionRepository)
+                )
+                WorkerPaymentHistoryScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            // Reports
+            composable(Screen.Reports.route) {
+                val viewModel: ReportsViewModel = viewModel(
+                    factory = ReportsViewModelFactory(
+                        appContainer.transactionRepository,
+                        appContainer.projectRepository,
+                        appContainer.resourceRepository
+                    )
+                )
+                ReportsScreen(
                     viewModel = viewModel,
                     onNavigateBack = { navController.popBackStack() }
                 )

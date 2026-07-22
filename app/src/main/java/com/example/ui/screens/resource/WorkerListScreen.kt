@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,13 +48,19 @@ fun WorkerListScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.ShimmerCardList(
+                modifier = Modifier.padding(paddingValues),
+                itemCount = 4
+            )
         } else if (uiState.workers.isEmpty()) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("No workers found", color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
+            com.example.ui.components.layout.EmptyState(
+                icon = Icons.Default.Group,
+                title = "No workers yet",
+                description = "Add workers to manage attendance, wages, and assignments.",
+                actionLabel = "Add Worker",
+                onAction = onNavigateToAdd,
+                modifier = Modifier.padding(paddingValues)
+            )
         } else {
             LazyColumn(
                 modifier = Modifier

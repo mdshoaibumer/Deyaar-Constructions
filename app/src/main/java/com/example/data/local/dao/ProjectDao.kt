@@ -57,4 +57,13 @@ interface ProjectDao {
     
     @Query("SELECT COUNT(*) FROM projects")
     suspend fun getProjectsCount(): Int
+
+    @Query("SELECT COUNT(*) FROM projects WHERE status = 'COMPLETED'")
+    fun getCompletedProjectsCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM projects WHERE status = 'ON_HOLD'")
+    fun getOnHoldProjectsCount(): Flow<Int>
+
+    @Query("SELECT COALESCE(SUM(contractValuePaise), 0) FROM projects WHERE contractValuePaise IS NOT NULL")
+    fun getTotalContractValue(): Flow<Long>
 }

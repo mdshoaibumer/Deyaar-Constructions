@@ -1,8 +1,11 @@
 package com.example.ui.screens.resource
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.domain.model.Material
 import com.example.domain.repository.ResourceRepository
 import com.example.core.util.CurrencyUtils
@@ -15,14 +18,15 @@ import java.util.UUID
 
 class MaterialAddEditViewModel(
     private val materialId: String?,
-    private val repository: ResourceRepository
+    private val repository: ResourceRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(MaterialAddEditUiState())
+    private val _uiState = MutableStateFlow(restoreState() ?: MaterialAddEditUiState())
     val uiState: StateFlow<MaterialAddEditUiState> = _uiState.asStateFlow()
 
     init {
-        if (materialId != null) {
+        if (materialId != null && !savedStateHandle.contains(KEY_NAME)) {
             loadMaterial(materialId)
         }
     }
@@ -48,6 +52,7 @@ class MaterialAddEditViewModel(
                         isEditing = true
                     )
                 }
+                saveState()
             } else {
                 _uiState.update { it.copy(error = "Material not found", isLoading = false) }
             }
@@ -66,6 +71,37 @@ class MaterialAddEditViewModel(
             is MaterialEvent.Save -> saveMaterial()
             is MaterialEvent.Delete -> deleteMaterial()
         }
+        saveState()
+    }
+
+    private fun saveState() {
+        val state = _uiState.value
+        savedStateHandle[KEY_NAME] = state.name
+        savedStateHandle[KEY_CATEGORY] = state.category
+        savedStateHandle[KEY_UNIT] = state.unit
+        savedStateHandle[KEY_CURRENT_STOCK] = state.currentStock
+        savedStateHandle[KEY_MINIMUM_STOCK] = state.minimumStock
+        savedStateHandle[KEY_OPENING_STOCK] = state.openingStock
+        savedStateHandle[KEY_PURCHASE_PRICE] = state.purchasePrice
+        savedStateHandle[KEY_AVERAGE_COST] = state.averageCost
+        savedStateHandle[KEY_REMARKS] = state.remarks
+        savedStateHandle[KEY_STATUS] = state.status
+    }
+
+    private fun restoreState(): MaterialAddEditUiState? {
+        val name = savedStateHandle.get<String>(KEY_NAME) ?: return null
+        return MaterialAddEditUiState(
+            name = name,
+            category = savedStateHandle[KEY_CATEGORY] ?: "Cement",
+            unit = savedStateHandle[KEY_UNIT] ?: "kg",
+            currentStock = savedStateHandle[KEY_CURRENT_STOCK] ?: "",
+            minimumStock = savedStateHandle[KEY_MINIMUM_STOCK] ?: "",
+            openingStock = savedStateHandle[KEY_OPENING_STOCK] ?: "0",
+            purchasePrice = savedStateHandle[KEY_PURCHASE_PRICE] ?: "",
+            averageCost = savedStateHandle[KEY_AVERAGE_COST] ?: "0",
+            remarks = savedStateHandle[KEY_REMARKS] ?: "",
+            status = savedStateHandle[KEY_STATUS] ?: "ACTIVE"
+        )
     }
 
     private fun saveMaterial() {
@@ -107,6 +143,19 @@ class MaterialAddEditViewModel(
             }
         }
     }
+
+    companion object {
+        private const val KEY_NAME = "material_name"
+        private const val KEY_CATEGORY = "material_category"
+        private const val KEY_UNIT = "material_unit"
+        private const val KEY_CURRENT_STOCK = "material_currentStock"
+        private const val KEY_MINIMUM_STOCK = "material_minimumStock"
+        private const val KEY_OPENING_STOCK = "material_openingStock"
+        private const val KEY_PURCHASE_PRICE = "material_purchasePrice"
+        private const val KEY_AVERAGE_COST = "material_averageCost"
+        private const val KEY_REMARKS = "material_remarks"
+        private const val KEY_STATUS = "material_status"
+    }
 }
 
 data class MaterialAddEditUiState(
@@ -144,10 +193,11 @@ class MaterialAddEditViewModelFactory(
     private val materialId: String?,
     private val repository: ResourceRepository
 ) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(MaterialAddEditViewModel::class.java)) {
+            val savedStateHandle = extras.createSavedStateHandle()
             @Suppress("UNCHECKED_CAST")
-            return MaterialAddEditViewModel(materialId, repository) as T
+            return MaterialAddEditViewModel(materialId, repository, savedStateHandle) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

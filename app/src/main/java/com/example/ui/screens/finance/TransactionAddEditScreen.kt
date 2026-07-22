@@ -123,10 +123,13 @@ fun TransactionAddEditScreen(
             OutlinedTextField(
                 value = uiState.amount,
                 onValueChange = { viewModel.onEvent(TransactionEvent.UpdateAmount(it)) },
-                label = { Text("Amount") },
+                label = { Text("Amount *") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth(),
-                isError = uiState.error == "Invalid amount"
+                isError = uiState.error == "Invalid amount",
+                supportingText = if (uiState.error == "Invalid amount") {
+                    { Text("Please enter a valid amount") }
+                } else null
             )
             
             // Payment Method
@@ -175,14 +178,27 @@ fun TransactionAddEditScreen(
             )
             
             if (uiState.error != null && uiState.error != "Invalid amount") {
-                Text(text = uiState.error!!, color = MaterialTheme.colorScheme.error)
+                com.example.ui.components.layout.ErrorBanner(
+                    message = uiState.error!!,
+                    visible = true
+                )
             }
 
             Button(
                 onClick = { viewModel.onEvent(TransactionEvent.Save) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(Dimens.buttonHeight),
                 enabled = !uiState.isSaving
             ) {
+                if (uiState.isSaving) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                }
                 Text(if (uiState.isSaving) "Saving..." else "Save Transaction")
             }
             
