@@ -117,9 +117,7 @@ fun AttendanceHistoryScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.ShimmerCardList(modifier = Modifier.padding(paddingValues))
         } else {
             LazyColumn(
                 modifier = Modifier

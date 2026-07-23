@@ -4,126 +4,128 @@ import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
+import com.example.R
 
-/**
- * Deyaar Constructions Typography Scale.
- *
- * Uses the system sans-serif (Roboto on most Android devices) which provides
- * excellent legibility and a clean professional appearance.
- *
- * Weight hierarchy:
- * - Display/Headline: Normal to SemiBold (for visual hierarchy)
- * - Title: Medium to SemiBold (section leaders)
- * - Body: Normal (maximum readability)
- * - Label: Medium (buttons, chips, metadata)
- */
-private val DeyaarFontFamily = FontFamily.SansSerif
+val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage = "com.google.android.gms",
+    certificates = R.array.com_google_android_gms_fonts_certs
+)
+
+val InterFontName = GoogleFont("Inter")
+val InterFontFamily = FontFamily(
+    Font(googleFont = InterFontName, fontProvider = provider, weight = FontWeight.Normal),
+    Font(googleFont = InterFontName, fontProvider = provider, weight = FontWeight.Medium),
+    Font(googleFont = InterFontName, fontProvider = provider, weight = FontWeight.SemiBold),
+    Font(googleFont = InterFontName, fontProvider = provider, weight = FontWeight.Bold),
+)
+
+val GeistFontName = GoogleFont("Geist")
+val GeistFontFamily = FontFamily(
+    Font(googleFont = GeistFontName, fontProvider = provider, weight = FontWeight.Medium),
+    Font(googleFont = GeistFontName, fontProvider = provider, weight = FontWeight.SemiBold),
+)
 
 val Typography = Typography(
     displayLarge = TextStyle(
-        fontFamily = DeyaarFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 57.sp,
-        lineHeight = 64.sp,
-        letterSpacing = (-0.25).sp
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 48.sp,
+        lineHeight = 56.sp,
+        letterSpacing = (-0.02).sp
     ),
     displayMedium = TextStyle(
-        fontFamily = DeyaarFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 45.sp,
-        lineHeight = 52.sp,
-        letterSpacing = 0.sp
-    ),
-    displaySmall = TextStyle(
-        fontFamily = DeyaarFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.Bold,
         fontSize = 36.sp,
         lineHeight = 44.sp,
-        letterSpacing = 0.sp
+        letterSpacing = (-0.02).sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+        letterSpacing = (-0.01).sp
     ),
     headlineLarge = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 32.sp,
         lineHeight = 40.sp,
-        letterSpacing = 0.sp
+        letterSpacing = (-0.01).sp
     ),
     headlineMedium = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp
     ),
-    headlineSmall = TextStyle(
-        fontFamily = DeyaarFontFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
-        letterSpacing = 0.sp
-    ),
     titleLarge = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.SemiBold,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
     titleMedium = TextStyle(
-        fontFamily = DeyaarFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.15.sp
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 20.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
     ),
     titleSmall = TextStyle(
-        fontFamily = DeyaarFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.sp
     ),
     bodyLarge = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+        letterSpacing = 0.sp
     ),
     bodyMedium = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
-        letterSpacing = 0.25.sp
+        letterSpacing = 0.sp
     ),
     bodySmall = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.4.sp
+        letterSpacing = 0.sp
     ),
     labelLarge = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = GeistFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 14.sp,
         lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
+        letterSpacing = 0.05.sp
     ),
     labelMedium = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = GeistFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+        letterSpacing = 0.05.sp
     ),
     labelSmall = TextStyle(
-        fontFamily = DeyaarFontFamily,
+        fontFamily = GeistFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+        letterSpacing = 0.05.sp
     )
 )

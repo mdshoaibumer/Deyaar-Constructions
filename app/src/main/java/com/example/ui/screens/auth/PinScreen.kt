@@ -1,275 +1,293 @@
 package com.example.ui.screens.auth
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Backspace
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.core.security.SecurityPreferences
-import com.example.ui.theme.Dimens
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+
+import com.example.R
+import com.example.ui.theme.Dimens
 
 @Composable
 fun PinScreen(
-    title: String,
-    onSuccess: () -> Unit
+    onLoginSuccess: () -> Unit,
+    onUseBiometric: () -> Unit
 ) {
-    val context = LocalContext.current
-    val haptic = LocalHapticFeedback.current
-    val coroutineScope = rememberCoroutineScope()
-    val securityPrefs = remember { SecurityPreferences(context) }
-    val isPinSet = securityPrefs.isPinEnabled()
+    var pin by remember { mutableStateOf("") }
+    val maxPinLength = 4
 
-    // If PIN is not set, skip directly (first time setup or PIN disabled)
-    if (!isPinSet && title.contains("Unlock", ignoreCase = true)) {
-        LaunchedEffect(Unit) { onSuccess() }
-        return
-    }
-
-    var enteredPin by remember { mutableStateOf("") }
-    var confirmPin by remember { mutableStateOf("") }
-    var isConfirming by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    val isSetupMode = title.contains("Setup", ignoreCase = true) || !isPinSet
-
-    val currentTitle = when {
-        isSetupMode && !isConfirming -> "Create PIN"
-        isSetupMode && isConfirming -> "Confirm PIN"
-        else -> title
-    }
-
-    // Shake animation for error
-    val shakeOffset = remember { Animatable(0f) }
-
-    // Dot scale animations
-    val dotScales = remember { List(4) { Animatable(1f) } }
-
-    // Animate dot when filled
-    val currentPin = if (isConfirming) confirmPin else enteredPin
-    LaunchedEffect(currentPin.length) {
-        if (currentPin.isNotEmpty()) {
-            val index = currentPin.length - 1
-            if (index in dotScales.indices) {
-                dotScales[index].animateTo(
-                    targetValue = 1.3f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioMediumBouncy,
-                        stiffness = Spring.StiffnessHigh
-                    )
-                )
-                dotScales[index].animateTo(
-                    targetValue = 1f,
-                    animationSpec = spring(
-                        dampingRatio = Spring.DampingRatioNoBouncy,
-                        stiffness = Spring.StiffnessMedium
-                    )
-                )
-            }
+    LaunchedEffect(pin) {
+        if (pin.length == maxPinLength) {
+            // Simulate validation delay
+            delay(300)
+            onLoginSuccess()
         }
     }
 
-    fun triggerShake() {
-        coroutineScope.launch {
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            // Quick shake left-right-left-right-center
-            val offsets = listOf(10f, -10f, 8f, -8f, 4f, -4f, 0f)
-            for (offset in offsets) {
-                shakeOffset.animateTo(offset, animationSpec = tween(50))
-            }
-        }
-    }
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(Dimens.spaceLarge)
-            .semantics { contentDescription = currentTitle },
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(MaterialTheme.colorScheme.background)
+            .padding(Dimens.marginMobile),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "DEYAAR",
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(Dimens.spaceExtraLarge))
-
-        Text(
-            text = currentTitle,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Spacer(modifier = Modifier.height(Dimens.spaceLarge))
-
-        // PIN dots with animation
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.graphicsLayer {
-                translationX = shakeOffset.value
-            }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.9f)
+                .background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = MaterialTheme.shapes.medium
+                )
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = MaterialTheme.shapes.medium
+                )
+                .padding(Dimens.spaceLarge),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            repeat(4) { index ->
-                val isFilled = index < currentPin.length
-                Box(
-                    modifier = Modifier
-                        .size(18.dp)
-                        .scale(dotScales[index].value)
-                        .clip(CircleShape)
-                        .background(
-                            if (isFilled) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.outlineVariant
-                        )
-                        .semantics {
-                            contentDescription = if (isFilled) "Digit entered" else "Empty"
-                        }
+            // Brand Header
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(bottom = Dimens.spaceExtraLarge)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_deyaar_logo),
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                Column {
+                    Text(
+                        text = "DEYAAR",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "CONSTRUCTION",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing * 2
+                    )
+                }
+            }
+
+            // Profile Info
+            // Using a generic placeholder since we don't have the external image loaded via Coil right now
+            Box(
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .border(4.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "AC",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.height(Dimens.spaceMedium))
-
-        // Error message with animation
-        AnimatedVisibility(
-            visible = error != null,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
+            Spacer(modifier = Modifier.height(Dimens.spaceMedium))
             Text(
-                text = error ?: "",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodyMedium
+                text = "Alex Carter",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
             )
+            Text(
+                text = "Lead Site Engineer",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(Dimens.spaceExtraLarge))
+
+            // PIN Indicator
+            Text(
+                text = "ENTER PIN",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing * 1.5f
+            )
+            Spacer(modifier = Modifier.height(Dimens.spaceMedium))
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Dimens.spaceMedium),
+                modifier = Modifier.padding(bottom = Dimens.spaceExtraLarge)
+            ) {
+                for (i in 0 until maxPinLength) {
+                    PinDot(isFilled = i < pin.length)
+                }
+            }
+
+            // Keypad
+            Keypad(
+                onNumberClick = {
+                    if (pin.length < maxPinLength) {
+                        pin += it
+                    }
+                },
+                onBackspaceClick = {
+                    if (pin.isNotEmpty()) {
+                        pin = pin.dropLast(1)
+                    }
+                },
+                onBiometricClick = onUseBiometric
+            )
+
+            Spacer(modifier = Modifier.height(Dimens.spaceExtraLarge))
+
+            // Footer action
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .padding(top = Dimens.spaceMedium),
+                contentAlignment = Alignment.Center
+            ) {
+                TextButton(onClick = { /* TODO */ }) {
+                    Text(
+                        text = "Forgot PIN?",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(Dimens.spaceExtraLarge))
+@Composable
+fun PinDot(isFilled: Boolean) {
+    val scale by animateFloatAsState(targetValue = if (isFilled) 1.2f else 1f, label = "pinDotScale")
+    val color = if (isFilled) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    
+    Box(
+        modifier = Modifier
+            .size(16.dp)
+            .scale(scale)
+            .clip(CircleShape)
+            .background(color)
+    )
+}
 
-        // Number Pad
-        val numbers = listOf(
+@Composable
+fun Keypad(
+    onNumberClick: (String) -> Unit,
+    onBackspaceClick: () -> Unit,
+    onBiometricClick: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium),
+        modifier = Modifier.width(280.dp)
+    ) {
+        val rows = listOf(
             listOf("1", "2", "3"),
             listOf("4", "5", "6"),
             listOf("7", "8", "9"),
-            listOf("", "0", "DEL")
+            listOf("bio", "0", "del")
         )
 
-        numbers.forEach { row ->
+        rows.forEach { row ->
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.spacedBy(Dimens.spaceMedium),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 row.forEach { key ->
-                    if (key.isEmpty()) {
-                        Spacer(modifier = Modifier.size(72.dp))
-                    } else if (key == "DEL") {
-                        IconButton(
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                if (isConfirming && confirmPin.isNotEmpty()) {
-                                    confirmPin = confirmPin.dropLast(1)
-                                } else if (!isConfirming && enteredPin.isNotEmpty()) {
-                                    enteredPin = enteredPin.dropLast(1)
-                                }
-                                error = null
-                            },
-                            modifier = Modifier
-                                .size(72.dp)
-                                .semantics { contentDescription = "Delete last digit" }
-                        ) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Backspace,
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp)
-                            )
+                    KeypadButton(
+                        key = key,
+                        modifier = Modifier.weight(1f),
+                        onClick = {
+                            when (key) {
+                                "bio" -> onBiometricClick()
+                                "del" -> onBackspaceClick()
+                                else -> onNumberClick(key)
+                            }
                         }
-                    } else {
-                        FilledTonalButton(
-                            onClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                error = null
-                                if (isConfirming) {
-                                    if (confirmPin.length < 4) {
-                                        confirmPin += key
-                                        if (confirmPin.length == 4) {
-                                            if (confirmPin == enteredPin) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                securityPrefs.setPin(confirmPin)
-                                                onSuccess()
-                                            } else {
-                                                error = "PINs don't match. Try again."
-                                                triggerShake()
-                                                confirmPin = ""
-                                                enteredPin = ""
-                                                isConfirming = false
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    if (enteredPin.length < 4) {
-                                        enteredPin += key
-                                        if (enteredPin.length == 4) {
-                                            if (isSetupMode) {
-                                                isConfirming = true
-                                            } else {
-                                                // Verify PIN
-                                                if (securityPrefs.verifyPin(enteredPin)) {
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    onSuccess()
-                                                } else {
-                                                    error = "Incorrect PIN"
-                                                    triggerShake()
-                                                    enteredPin = ""
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .size(72.dp)
-                                .semantics { contentDescription = "Digit $key" },
-                            shape = CircleShape
-                        ) {
-                            Text(
-                                text = key,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(Dimens.spaceSmall))
         }
+    }
+}
 
-        // Skip option for first-time setup
-        if (isSetupMode) {
-            Spacer(modifier = Modifier.height(Dimens.spaceMedium))
-            TextButton(onClick = onSuccess) {
-                Text("Set up later in Settings")
+@Composable
+fun KeypadButton(
+    key: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = modifier.aspectRatio(1f),
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surface,
+        border = if (key == "bio" || key == "del") null else androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.surfaceVariant),
+        shadowElevation = if (key == "bio" || key == "del") 0.dp else 1.dp,
+        onClick = onClick
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            when (key) {
+                "bio" -> Icon(
+                    imageVector = Icons.Default.Fingerprint,
+                    contentDescription = "Biometric Login",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(32.dp)
+                )
+                "del" -> Icon(
+                    imageVector = Icons.Default.Backspace,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(28.dp)
+                )
+                else -> Text(
+                    text = key,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }

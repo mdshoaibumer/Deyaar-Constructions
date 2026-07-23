@@ -112,6 +112,10 @@ androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", vers
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+androidx-compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version = "1.6.8" }
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version = "1.13.1" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version = "1.13.1" }
+vico-core = { group = "com.patrykandpatrick.vico", name = "core", version = "1.13.1" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -5,66 +5,51 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.HomeRepairService
-import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Dashboard
 import androidx.compose.material.icons.outlined.HomeRepairService
-import androidx.compose.material.icons.outlined.MonetizationOn
 import androidx.compose.material.icons.outlined.People
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.ui.components.DeyaarBottomNavigation
+import com.example.ui.components.NavigationItem
 import com.example.ui.navigation.Screen
 
-private data class NavItem(
-    val route: String,
-    val label: String,
-    val selectedIcon: ImageVector,
-    val unselectedIcon: ImageVector,
-    val contentDescription: String,
-)
-
 private val navItems = listOf(
-    NavItem(
+    NavigationItem(
         route = Screen.Dashboard.route,
         label = "Dashboard",
         selectedIcon = Icons.Filled.Dashboard,
-        unselectedIcon = Icons.Outlined.Dashboard,
-        contentDescription = "Dashboard tab"
+        unselectedIcon = Icons.Outlined.Dashboard
     ),
-    NavItem(
+    NavigationItem(
         route = Screen.Projects.route,
         label = "Projects",
         selectedIcon = Icons.Filled.HomeRepairService,
-        unselectedIcon = Icons.Outlined.HomeRepairService,
-        contentDescription = "Projects tab"
+        unselectedIcon = Icons.Outlined.HomeRepairService
     ),
-    NavItem(
+    NavigationItem(
         route = Screen.Clients.route,
         label = "Clients",
         selectedIcon = Icons.Filled.People,
-        unselectedIcon = Icons.Outlined.People,
-        contentDescription = "Clients tab"
+        unselectedIcon = Icons.Outlined.People
     ),
-    NavItem(
-        route = Screen.Finance.route,
-        label = "Finance",
-        selectedIcon = Icons.Filled.MonetizationOn,
-        unselectedIcon = Icons.Outlined.MonetizationOn,
-        contentDescription = "Finance tab"
-    ),
+    NavigationItem(
+        route = Screen.Settings.route,
+        label = "Settings",
+        selectedIcon = Icons.Filled.Settings,
+        unselectedIcon = Icons.Outlined.Settings
+    )
 )
 
 @Composable
@@ -84,32 +69,17 @@ fun AppScaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (showBottomBar) {
-                DeyaarBottomNav(navController = navController, currentRoute = currentRoute)
+                DeyaarBottomNavigation(
+                    items = navItems,
+                    currentRoute = currentRoute,
+                    onNavigate = { route -> navigateToTopLevel(navController, route) }
+                )
             }
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         content(innerPadding)
-    }
-}
-
-@Composable
-fun DeyaarBottomNav(navController: NavController, currentRoute: String?) {
-    NavigationBar {
-        navItems.forEach { item ->
-            val selected = currentRoute == item.route
-            NavigationBarItem(
-                selected = selected,
-                onClick = { navigateToTopLevel(navController, item.route) },
-                icon = {
-                    Icon(
-                        imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
-                        contentDescription = item.contentDescription
-                    )
-                },
-                label = { Text(item.label) }
-            )
-        }
     }
 }
 

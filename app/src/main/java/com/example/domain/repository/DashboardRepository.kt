@@ -14,4 +14,7 @@ interface DashboardRepository {
     fun getTotalContractValue(): Flow<Long>
     fun getTotalReceived(): Flow<Long>
     fun getRecentProjects(limit: Int): Flow<List<Project>>
+    fun getUpcomingDeadlines(limit: Int): Flow<List<Project>>
+    suspend fun getMonthlyExpenses(monthsBack: Int): List<Long>
+    fun getRecentExpenseDescriptions(limit: Int): Flow<List<Pair<String, Long>>>
 }

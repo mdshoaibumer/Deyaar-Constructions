@@ -66,7 +66,7 @@ fun ClientAddEditScreen(
                 verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium)
             ) {
                 // Error banner
-                com.example.ui.components.layout.ErrorBanner(
+                com.example.ui.components.feedback.ErrorBanner(
                     message = uiState.error ?: "",
                     visible = uiState.error != null
                 )

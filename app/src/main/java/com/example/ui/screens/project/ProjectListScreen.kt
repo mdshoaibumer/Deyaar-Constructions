@@ -2,6 +2,8 @@ package com.example.ui.screens.project
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.Dimens
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -12,23 +14,26 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.core.util.CurrencyUtils
 import com.example.domain.model.Project
 import com.example.domain.model.ProjectStatus
+import com.example.ui.components.DeyaarTopAppBar
+import com.example.ui.components.PremiumProjectCard
 import com.example.ui.components.layout.EmptyState
 import com.example.ui.components.layout.ShimmerCardList
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProjectListScreen(
     viewModel: ProjectListViewModel,
@@ -41,83 +46,106 @@ fun ProjectListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Projects") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
+            DeyaarTopAppBar(
+                title = "DEYAAR CONSTRUCTIONS",
+                showLogo = true,
+                onNavigationClick = onNavigateBack, // We don't really need a back button if it's top level, but keeping it
                 actions = {
-                    var expanded by remember { mutableStateOf(false) }
-                    IconButton(onClick = { expanded = true }) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Sort Options")
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        DropdownMenuItem(text = { Text("Newest First") }, onClick = { expanded = false })
-                        DropdownMenuItem(text = { Text("Oldest First") }, onClick = { expanded = false })
-                        DropdownMenuItem(text = { Text("Highest Value") }, onClick = { expanded = false })
-                        DropdownMenuItem(text = { Text("Completion %") }, onClick = { expanded = false })
+                    IconButton(onClick = { /* Notifications */ }) {
+                        Icon(
+                            imageVector = Icons.Default.Add, // Placeholder for notifications or add
+                            contentDescription = "Add Project"
+                        )
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAddProject) {
+            FloatingActionButton(
+                onClick = onNavigateToAddProject,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Project")
             }
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Search field
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = { viewModel.onSearchQueryChanged(it) },
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = Dimens.spaceMedium)
-                    .padding(top = Dimens.spaceSmall),
-                placeholder = { Text("Search projects...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                singleLine = true,
-                shape = MaterialTheme.shapes.medium
-            )
-
-            Spacer(modifier = Modifier.height(Dimens.spaceSmall))
-
-            // Status filter chips — proper horizontal scrollable row
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = Dimens.spaceMedium, vertical = Dimens.spaceSmall),
-                horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSmall)
+                    .padding(Dimens.marginMobile)
             ) {
-                FilterChip(
-                    selected = selectedStatus == null,
-                    onClick = {
-                        selectedStatus = null
-                        viewModel.onStatusFilterSelected(null)
-                    },
-                    label = { Text("All") }
+                Text(
+                    text = "Projects Overview",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                ProjectStatus.entries.forEach { status ->
-                    FilterChip(
-                        selected = selectedStatus == status,
+                Spacer(modifier = Modifier.height(Dimens.spaceMedium))
+
+                // Search field
+                OutlinedTextField(
+                    value = uiState.searchQuery,
+                    onValueChange = { viewModel.onSearchQueryChanged(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text("Search projects, IDs, or locations...") },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(8.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                        focusedBorderColor = MaterialTheme.colorScheme.primaryContainer,
+                        unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(Dimens.spaceMedium))
+
+                // Status filter chips
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSmall)
+                ) {
+                    CustomFilterChip(
+                        selected = selectedStatus == ProjectStatus.ACTIVE,
+                        label = "Active",
+                        icon = Icons.Default.CheckCircle,
                         onClick = {
-                            selectedStatus = if (selectedStatus == status) null else status
-                            viewModel.onStatusFilterSelected(
-                                if (selectedStatus == status) status else null
-                            )
-                        },
-                        label = { Text(status.displayName) }
+                            selectedStatus = if (selectedStatus == ProjectStatus.ACTIVE) null else ProjectStatus.ACTIVE
+                            viewModel.onStatusFilterSelected(selectedStatus)
+                        }
+                    )
+                    CustomFilterChip(
+                        selected = selectedStatus == ProjectStatus.ON_HOLD,
+                        label = "On Hold",
+                        icon = Icons.Default.PauseCircle,
+                        onClick = {
+                            selectedStatus = if (selectedStatus == ProjectStatus.ON_HOLD) null else ProjectStatus.ON_HOLD
+                            viewModel.onStatusFilterSelected(selectedStatus)
+                        }
+                    )
+                    CustomFilterChip(
+                        selected = selectedStatus == ProjectStatus.COMPLETED,
+                        label = "Completed",
+                        icon = Icons.Default.TaskAlt,
+                        onClick = {
+                            selectedStatus = if (selectedStatus == ProjectStatus.COMPLETED) null else ProjectStatus.COMPLETED
+                            viewModel.onStatusFilterSelected(selectedStatus)
+                        }
                     )
                 }
             }
@@ -130,21 +158,33 @@ fun ProjectListScreen(
                 uiState.projects.isEmpty() -> {
                     EmptyState(
                         icon = Icons.Default.Folder,
-                        title = "No projects yet",
-                        description = "Create your first project to start tracking progress, finances, and milestones.",
+                        title = "No projects found",
+                        description = "There are no projects matching your criteria.",
                         actionLabel = "Add Project",
                         onAction = onNavigateToAddProject
                     )
                 }
                 else -> {
                     LazyColumn(
-                        contentPadding = PaddingValues(Dimens.spaceMedium),
-                        verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium)
+                        contentPadding = PaddingValues(
+                            start = Dimens.marginMobile,
+                            end = Dimens.marginMobile,
+                            bottom = 80.dp
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(Dimens.spaceLarge)
                     ) {
                         items(uiState.projects, key = { it.id }) { project ->
-                            ProjectCard(
-                                project = project,
-                                onClick = onNavigateToProjectDetails,
+                            // Use the new PremiumProjectCard
+                            PremiumProjectCard(
+                                title = project.name,
+                                subtitle = "Location not available", // Domain model needs location
+                                imageUrl = null, // Backend doesn't have image yet
+                                status = project.status.displayName,
+                                timeline = "Est. 2025",
+                                budget = project.contractValuePaise?.let { CurrencyUtils.formatPaise(it) } ?: "N/A",
+                                progress = project.progress,
+                                phase = project.category.displayName,
+                                onClick = { onNavigateToProjectDetails(project.id) },
                                 modifier = Modifier.animateItem()
                             )
                         }
@@ -156,91 +196,40 @@ fun ProjectListScreen(
 }
 
 @Composable
-fun ProjectCard(project: Project, onClick: (String) -> Unit, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick(project.id) },
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+fun CustomFilterChip(
+    selected: Boolean,
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit
+) {
+    val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
+    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+    val borderColor = if (selected) androidx.compose.ui.graphics.Color.Transparent else MaterialTheme.colorScheme.outlineVariant
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(containerColor)
+            .then(
+                if (!selected) Modifier.border(1.dp, borderColor, RoundedCornerShape(50)) else Modifier
+            )
+            .clickable(onClick = onClick)
+            .padding(horizontal = Dimens.spaceMedium, vertical = 6.dp)
     ) {
-        Column(modifier = Modifier.padding(Dimens.spaceMedium)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = project.projectNumber,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                AssistChip(
-                    onClick = { },
-                    label = { Text(project.status.displayName, style = MaterialTheme.typography.labelSmall) },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = when (project.status) {
-                            ProjectStatus.ACTIVE -> MaterialTheme.colorScheme.primaryContainer
-                            ProjectStatus.COMPLETED -> MaterialTheme.colorScheme.secondaryContainer
-                            ProjectStatus.PLANNING -> MaterialTheme.colorScheme.tertiaryContainer
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        }
-                    )
-                )
-            }
-            Spacer(modifier = Modifier.height(Dimens.spaceMicro))
-            Text(
-                text = project.name,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = contentColor
             )
             Text(
-                text = project.category.displayName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(Dimens.spaceMedium))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        "Contract Value",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        project.contractValuePaise?.let { CurrencyUtils.formatPaise(it) } ?: "N/A",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        "Progress",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        "${project.progress}%",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(Dimens.spaceSmall))
-            LinearProgressIndicator(
-                progress = { project.progress / 100f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primaryContainer,
-                strokeCap = StrokeCap.Round,
-                drawStopIndicator = {}
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor
             )
         }
     }

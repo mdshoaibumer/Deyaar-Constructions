@@ -132,7 +132,14 @@ class AttendanceViewModel(
             remarks = null,
             createdAt = System.currentTimeMillis()
         )
-        editedAttendance[workerId] = transform(existing)
+        val updated = transform(existing)
+        // Update hoursWorked based on status
+        val withHours = when (updated.status) {
+            AttendanceStatus.PRESENT -> updated.copy(hoursWorked = 8.0 + updated.overtimeHours)
+            AttendanceStatus.HALF_DAY -> updated.copy(hoursWorked = 4.0)
+            AttendanceStatus.ABSENT -> updated.copy(hoursWorked = 0.0, overtimeHours = 0.0)
+        }
+        editedAttendance[workerId] = withHours
         
         // Update the UI rows
         val currentRows = _uiState.value.attendanceRows
@@ -151,6 +158,15 @@ class AttendanceViewModel(
             absentCount = absent,
             halfDayCount = halfDay
         ) }
+
+        // Auto-save individual record to prevent data loss
+        viewModelScope.launch {
+            try {
+                repository.saveAttendance(withHours)
+            } catch (_: Exception) {
+                // Silent - will be retried on next explicit save
+            }
+        }
     }
 
     private fun saveAll() {

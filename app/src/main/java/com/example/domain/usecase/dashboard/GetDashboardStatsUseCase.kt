@@ -4,23 +4,27 @@ import com.example.domain.model.Project
 import com.example.domain.repository.DashboardRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flow
 
 /**
  * Dashboard statistics. All monetary values are in paise (1 INR = 100 paise).
  */
 data class DashboardStats(
-    val totalClients: Int,
-    val totalProjects: Int,
-    val activeProjects: Int,
-    val completedProjects: Int,
-    val projectsOnHold: Int,
-    val todaysLabourCount: Int,
-    val totalExpensesPaise: Long,
-    val pendingPaymentsPaise: Long,
-    val totalContractValuePaise: Long,
-    val receivedAmountPaise: Long,
-    val netProfitPaise: Long,
-    val recentProjects: List<Project>
+    val totalClients: Int = 0,
+    val totalProjects: Int = 0,
+    val activeProjects: Int = 0,
+    val completedProjects: Int = 0,
+    val projectsOnHold: Int = 0,
+    val todaysLabourCount: Int = 0,
+    val totalExpensesPaise: Long = 0L,
+    val pendingPaymentsPaise: Long = 0L,
+    val totalContractValuePaise: Long = 0L,
+    val receivedAmountPaise: Long = 0L,
+    val netProfitPaise: Long = 0L,
+    val recentProjects: List<Project> = emptyList(),
+    val upcomingDeadlines: List<Project> = emptyList(),
+    val monthlyExpensesPaise: List<Long> = emptyList(),
+    val recentExpenses: List<Pair<String, Long>> = emptyList()
 )
 
 class GetDashboardStatsUseCase(
@@ -36,7 +40,6 @@ class GetDashboardStatsUseCase(
         ) { clients, totalProjects, active, completed, onHold ->
             DashboardPartial1(clients, totalProjects, active, completed, onHold)
         }.let { partial1Flow ->
-            // Second partial: group labour + expenses + contractValue
             val partial2Flow = combine(
                 repository.getTodaysLabourCount(),
                 repository.getTotalExpenses(),
@@ -44,7 +47,6 @@ class GetDashboardStatsUseCase(
             ) { labour, expenses, contractValue ->
                 Triple(labour, expenses, contractValue)
             }
-            // Final combine: partial1 + partial2 + received + recentProjects
             combine(
                 partial1Flow,
                 partial2Flow,
@@ -69,7 +71,24 @@ class GetDashboardStatsUseCase(
                     recentProjects = recentProjects
                 )
             }
+        }.let { baseFlow ->
+            combine(
+                baseFlow,
+                repository.getUpcomingDeadlines(5),
+                repository.getRecentExpenseDescriptions(5),
+                getMonthlyExpensesFlow()
+            ) { stats, deadlines, recentExpenses, monthlyExpenses ->
+                stats.copy(
+                    upcomingDeadlines = deadlines,
+                    recentExpenses = recentExpenses,
+                    monthlyExpensesPaise = monthlyExpenses
+                )
+            }
         }
+    }
+
+    private fun getMonthlyExpensesFlow(): Flow<List<Long>> = flow {
+        emit(repository.getMonthlyExpenses(6))
     }
 }
 

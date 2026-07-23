@@ -39,8 +39,16 @@ class DashboardViewModelTest {
             override fun getTotalClientsCount() = flowOf(0)
             override fun getTotalProjectsCount() = flowOf(0)
             override fun getActiveProjectsCount() = flowOf(0)
+            override fun getCompletedProjectsCount() = flowOf(0)
+            override fun getOnHoldProjectsCount() = flowOf(0)
+            override fun getTodaysLabourCount() = flowOf(0)
             override fun getTotalExpenses() = flowOf(0L)
+            override fun getTotalContractValue() = flowOf(0L)
+            override fun getTotalReceived() = flowOf(0L)
             override fun getRecentProjects(limit: Int) = flowOf(emptyList<Project>())
+            override fun getUpcomingDeadlines(limit: Int) = flowOf(emptyList<Project>())
+            override suspend fun getMonthlyExpenses(monthsBack: Int) = emptyList<Long>()
+            override fun getRecentExpenseDescriptions(limit: Int) = flowOf(emptyList<Pair<String, Long>>())
         }
 
         val useCase = GetDashboardStatsUseCase(mockRepo)
@@ -63,8 +71,16 @@ class DashboardViewModelTest {
             override fun getTotalClientsCount() = flowOf(5)
             override fun getTotalProjectsCount() = flowOf(3)
             override fun getActiveProjectsCount() = flowOf(2)
+            override fun getCompletedProjectsCount() = flowOf(1)
+            override fun getOnHoldProjectsCount() = flowOf(0)
+            override fun getTodaysLabourCount() = flowOf(10)
             override fun getTotalExpenses() = flowOf(150000L)
+            override fun getTotalContractValue() = flowOf(500000L)
+            override fun getTotalReceived() = flowOf(300000L)
             override fun getRecentProjects(limit: Int) = flowOf(emptyList<Project>())
+            override fun getUpcomingDeadlines(limit: Int) = flowOf(emptyList<Project>())
+            override suspend fun getMonthlyExpenses(monthsBack: Int) = emptyList<Long>()
+            override fun getRecentExpenseDescriptions(limit: Int) = flowOf(emptyList<Pair<String, Long>>())
         }
 
         val useCase = GetDashboardStatsUseCase(mockRepo)

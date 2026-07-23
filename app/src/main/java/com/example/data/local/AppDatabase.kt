@@ -61,7 +61,7 @@ import androidx.room.TypeConverters
         DocumentEntity::class
     ],
     version = 9,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

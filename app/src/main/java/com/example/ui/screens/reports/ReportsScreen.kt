@@ -1,35 +1,31 @@
 package com.example.ui.screens.reports
 
-import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.util.CurrencyUtils
 import com.example.core.util.PdfReportGenerator
+import com.example.ui.components.DeyaarTopAppBar
 import com.example.ui.theme.Dimens
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,281 +35,327 @@ fun ReportsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    var showStartDatePicker by remember { mutableStateOf(false) }
-    var showEndDatePicker by remember { mutableStateOf(false) }
     var showProjectPicker by remember { mutableStateOf(false) }
-    val dateFormatter = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
-
-    // Date Pickers
-    if (showStartDatePicker) {
-        val state = rememberDatePickerState(initialSelectedDateMillis = uiState.filter.startDate ?: System.currentTimeMillis())
-        DatePickerDialog(
-            onDismissRequest = { showStartDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    state.selectedDateMillis?.let { viewModel.onEvent(ReportsEvent.SelectStartDate(it)) }
-                    showStartDatePicker = false
-                }) { Text("OK") }
-            },
-            dismissButton = { TextButton(onClick = { showStartDatePicker = false }) { Text("Cancel") } }
-        ) { DatePicker(state = state) }
-    }
-
-    if (showEndDatePicker) {
-        val state = rememberDatePickerState(initialSelectedDateMillis = uiState.filter.endDate ?: System.currentTimeMillis())
-        DatePickerDialog(
-            onDismissRequest = { showEndDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    state.selectedDateMillis?.let { viewModel.onEvent(ReportsEvent.SelectEndDate(it)) }
-                    showEndDatePicker = false
-                }) { Text("OK") }
-            },
-            dismissButton = { TextButton(onClick = { showEndDatePicker = false }) { Text("Cancel") } }
-        ) { DatePicker(state = state) }
-    }
-
-    // Project Selection Dialog
-    if (showProjectPicker) {
-        AlertDialog(
-            onDismissRequest = { showProjectPicker = false },
-            title = { Text("Select Project") },
-            text = {
-                LazyColumn {
-                    item {
-                        ListItem(
-                            headlineContent = { Text("All Projects") },
-                            modifier = Modifier.clickable {
-                                viewModel.onEvent(ReportsEvent.SelectProject(null, null))
-                                showProjectPicker = false
-                            }
-                        )
-                    }
-                    items(uiState.projects) { project ->
-                        ListItem(
-                            headlineContent = { Text(project.name) },
-                            supportingContent = { Text(project.status.displayName) },
-                            modifier = Modifier.clickable {
-                                viewModel.onEvent(ReportsEvent.SelectProject(project.id, project.name))
-                                showProjectPicker = false
-                            }
-                        )
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showProjectPicker = false }) { Text("Cancel") }
-            }
-        )
-    }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Reports") },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
+            DeyaarTopAppBar(
+                title = "DEYAAR CONSTRUCTIONS",
+                showLogo = true,
+                onNavigationClick = onNavigateBack,
+                actions = { }
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(Dimens.spaceMedium),
-            verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium)
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            contentPadding = PaddingValues(Dimens.marginMobile),
+            verticalArrangement = Arrangement.spacedBy(Dimens.spaceLarge)
         ) {
-            // Report Type Selection
+            // Header
             item {
-                Text("Report Type", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(Dimens.spaceSmall))
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                    ReportType.entries.forEachIndexed { index, type ->
-                        SegmentedButton(
-                            selected = uiState.selectedReportType == type,
-                            onClick = { viewModel.onEvent(ReportsEvent.SelectReportType(type)) },
-                            shape = SegmentedButtonDefaults.itemShape(index, ReportType.entries.size),
-                            label = { Text(type.displayName, style = MaterialTheme.typography.labelSmall, maxLines = 1) }
-                        )
-                    }
+                Column {
+                    Text(
+                        "Analytics & Reports",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        "Generate reports from your real project data",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+            }
+
+            // Report Type Selector
+            item {
+                ReportTypeSelector(
+                    selectedType = uiState.selectedReportType,
+                    onTypeSelected = { viewModel.onEvent(ReportsEvent.SelectReportType(it)) }
+                )
             }
 
             // Filters
             item {
-                Text("Filters", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(Dimens.spaceSmall))
-
-                // Project filter
-                OutlinedCard(
-                    modifier = Modifier.fillMaxWidth().clickable { showProjectPicker = true }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(Dimens.spaceMedium),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Business, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                        Spacer(modifier = Modifier.width(Dimens.spaceMedium))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Project", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                text = uiState.filter.projectName ?: "All Projects",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = null)
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(Dimens.spaceSmall))
-
-                // Date range
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Dimens.spaceSmall)) {
-                    OutlinedCard(
-                        modifier = Modifier.weight(1f).clickable { showStartDatePicker = true }
-                    ) {
-                        Column(modifier = Modifier.padding(Dimens.spaceSmall)) {
-                            Text("From", style = MaterialTheme.typography.labelSmall)
-                            Text(
-                                text = uiState.filter.startDate?.let { dateFormatter.format(Date(it)) } ?: "Start",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-                    OutlinedCard(
-                        modifier = Modifier.weight(1f).clickable { showEndDatePicker = true }
-                    ) {
-                        Column(modifier = Modifier.padding(Dimens.spaceSmall)) {
-                            Text("To", style = MaterialTheme.typography.labelSmall)
-                            Text(
-                                text = uiState.filter.endDate?.let { dateFormatter.format(Date(it)) } ?: "End",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                    }
-                }
+                FiltersCard(
+                    filter = uiState.filter,
+                    projects = uiState.projects,
+                    onSelectProject = { id, name ->
+                        viewModel.onEvent(ReportsEvent.SelectProject(id, name))
+                    },
+                    showProjectPicker = showProjectPicker,
+                    onToggleProjectPicker = { showProjectPicker = it }
+                )
             }
 
             // Generate Button
             item {
                 Button(
                     onClick = { viewModel.onEvent(ReportsEvent.GenerateReport) },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !uiState.isGenerating
+                    modifier = Modifier.fillMaxWidth().height(Dimens.buttonHeight),
+                    enabled = !uiState.isGenerating,
+                    shape = MaterialTheme.shapes.medium
                 ) {
                     if (uiState.isGenerating) {
-                        CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
                         Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                        Text("Generating...")
+                    } else {
+                        Icon(Icons.Default.Analytics, contentDescription = null)
+                        Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                        Text("Generate Report")
                     }
-                    Icon(Icons.Default.Assessment, contentDescription = null)
-                    Spacer(modifier = Modifier.width(Dimens.spaceSmall))
-                    Text("Generate Report")
                 }
             }
 
             // Error
             if (uiState.error != null) {
                 item {
-                    Text(uiState.error!!, color = MaterialTheme.colorScheme.error)
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(Dimens.spaceMedium),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Error,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                            Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                            Text(
+                                uiState.error!!,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+                    }
                 }
             }
 
-            // Report Preview
+            // Report Results
             if (uiState.reportData != null) {
-                val report = uiState.reportData!!
+                val reportData = uiState.reportData!!
 
+                // PDF Export Card
                 item {
-                    HorizontalDivider()
-                    Spacer(modifier = Modifier.height(Dimens.spaceSmall))
-                    Row(
+                    Card(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        Text(report.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Row {
-                            // Export to PDF
-                            IconButton(onClick = {
-                                coroutineScope.launch {
-                                    try {
-                                        val file = withContext(Dispatchers.IO) {
-                                            PdfReportGenerator.generatePdf(context, report)
-                                        }
-                                        viewModel.setPdfPath(file.absolutePath)
-                                        Toast.makeText(context, "PDF saved: ${file.name}", Toast.LENGTH_LONG).show()
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "PDF export failed: ${e.message}", Toast.LENGTH_SHORT).show()
-                                    }
+                        Column(modifier = Modifier.padding(Dimens.spaceLarge)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .background(
+                                            Color.White.copy(alpha = 0.2f),
+                                            MaterialTheme.shapes.small
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Default.PictureAsPdf,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    )
                                 }
-                            }) {
-                                Icon(Icons.Default.PictureAsPdf, contentDescription = "Export PDF", tint = MaterialTheme.colorScheme.error)
+                                Spacer(modifier = Modifier.width(Dimens.spaceMedium))
+                                Column {
+                                    Text(
+                                        reportData.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                    Text(
+                                        "Export as PDF document",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                                    )
+                                }
                             }
-                            // Share
-                            if (uiState.pdfPath != null) {
-                                IconButton(onClick = {
+                            Spacer(modifier = Modifier.height(Dimens.spaceLarge))
+                            Button(
+                                onClick = {
                                     try {
-                                        val file = java.io.File(uiState.pdfPath!!)
-                                        val uri = FileProvider.getUriForFile(context, "${context.packageName}.provider", file)
-                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                            type = "application/pdf"
-                                            putExtra(Intent.EXTRA_STREAM, uri)
-                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                        }
-                                        context.startActivity(Intent.createChooser(shareIntent, "Share Report"))
+                                        val file = PdfReportGenerator.generatePdf(context, reportData)
+                                        viewModel.setPdfPath(file.absolutePath)
+                                        Toast.makeText(
+                                            context,
+                                            "PDF saved: ${file.name}",
+                                            Toast.LENGTH_LONG
+                                        ).show()
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Share failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "PDF export failed: ${e.message}",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
-                                }) {
-                                    Icon(Icons.Default.Share, contentDescription = "Share PDF")
-                                }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Icon(
+                                    Icons.Default.Download,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Download PDF")
                             }
                         }
                     }
                 }
 
-                // Summary Cards
+                // Summary Section
                 item {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        Column(modifier = Modifier.padding(Dimens.spaceMedium)) {
-                            report.summaryLines.forEach { line ->
-                                Text(
-                                    text = line,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                                )
+                        Column(modifier = Modifier.padding(Dimens.spaceLarge)) {
+                            Text(
+                                "Summary",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.height(Dimens.spaceMedium))
+                            reportData.summaryLines.forEach { line ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                                    Text(
+                                        line,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     }
                 }
 
                 // Report Rows
-                items(report.rows) { row ->
-                    ReportRowItem(row = row)
-                }
-
-                // Total
                 item {
-                    HorizontalDivider(thickness = 2.dp)
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = Dimens.spaceSmall),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                     ) {
-                        Text("TOTAL", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        Text(
-                            text = CurrencyUtils.formatPaise(report.totalAmountPaise),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = if (report.totalAmountPaise >= 0) com.example.ui.theme.DeyaarTheme.colors.success else MaterialTheme.colorScheme.error
-                        )
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
+                                    .padding(Dimens.spaceMedium),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "Details (${reportData.rows.size} items)",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                if (reportData.totalAmountPaise != 0L) {
+                                    Text(
+                                        "Total: ${CurrencyUtils.formatPaise(reportData.totalAmountPaise)}",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = if (reportData.totalAmountPaise >= 0)
+                                            Color(0xFF059669) else MaterialTheme.colorScheme.error,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                            reportData.rows.forEachIndexed { index, row ->
+                                ReportRowItem(row = row)
+                                if (index < reportData.rows.size - 1) {
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.surfaceContainerHighest
+                                    )
+                                }
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.height(64.dp))
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(100.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun ReportTypeSelector(
+    selectedType: ReportType,
+    onTypeSelected: (ReportType) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(Dimens.spaceMedium)) {
+            Text(
+                "Report Type",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(Dimens.spaceSmall))
+            ReportType.entries.forEach { type ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable { onTypeSelected(type) }
+                        .background(
+                            if (type == selectedType) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                            else Color.Transparent
+                        )
+                        .padding(horizontal = Dimens.spaceMedium, vertical = Dimens.spaceSmall),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = type == selectedType,
+                        onClick = { onTypeSelected(type) }
+                    )
+                    Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                    Text(
+                        type.displayName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (type == selectedType) FontWeight.Medium else FontWeight.Normal
+                    )
                 }
             }
         }
@@ -321,34 +363,145 @@ fun ReportsScreen(
 }
 
 @Composable
-fun ReportRowItem(row: ReportRow) {
+private fun FiltersCard(
+    filter: ReportFilter,
+    projects: List<com.example.domain.model.Project>,
+    onSelectProject: (String?, String?) -> Unit,
+    showProjectPicker: Boolean,
+    onToggleProjectPicker: (Boolean) -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimens.spaceMedium),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = row.label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-                if (row.sublabel != null) {
-                    Text(text = row.sublabel, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-                if (row.quantity != null) {
-                    Text(text = row.quantity, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+        Column(modifier = Modifier.padding(Dimens.spaceMedium)) {
+            Text(
+                "Filters",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(Dimens.spaceSmall))
+
+            // Project filter
+            OutlinedButton(
+                onClick = { onToggleProjectPicker(!showProjectPicker) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.small
+            ) {
+                Icon(Icons.Default.FilterList, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                Text(filter.projectName ?: "All Projects")
+            }
+
+            if (showProjectPicker) {
+                Spacer(modifier = Modifier.height(Dimens.spaceSmall))
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 200.dp)
+                    ) {
+                        // "All Projects" option
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onSelectProject(null, null)
+                                    onToggleProjectPicker(false)
+                                }
+                                .padding(Dimens.spaceMedium),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.SelectAll,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(Dimens.spaceSmall))
+                            Text("All Projects", style = MaterialTheme.typography.bodyMedium)
+                        }
+                        HorizontalDivider()
+                        projects.take(10).forEach { project ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onSelectProject(project.id, project.name)
+                                        onToggleProjectPicker(false)
+                                    }
+                                    .padding(Dimens.spaceMedium),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    project.name,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    project.status.displayName,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
                 }
             }
-            if (row.amountPaise != 0L) {
+        }
+    }
+}
+
+@Composable
+private fun ReportRowItem(row: ReportRow) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(Dimens.spaceMedium)
+            .semantics(mergeDescendants = true) {
+                contentDescription = buildString {
+                    append(row.label)
+                    row.sublabel?.let { append(", $it") }
+                    if (row.amountPaise != 0L) append(", ${CurrencyUtils.formatPaise(row.amountPaise)}")
+                    row.quantity?.let { append(", $it") }
+                }
+            },
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                row.label,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            row.sublabel?.let {
                 Text(
-                    text = CurrencyUtils.formatPaise(row.amountPaise),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = if (row.amountPaise >= 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.error
+                    it,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            row.quantity?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+        if (row.amountPaise != 0L) {
+            Text(
+                CurrencyUtils.formatPaise(kotlin.math.abs(row.amountPaise)),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (row.amountPaise >= 0) Color(0xFF059669) else MaterialTheme.colorScheme.error
+            )
         }
     }
 }

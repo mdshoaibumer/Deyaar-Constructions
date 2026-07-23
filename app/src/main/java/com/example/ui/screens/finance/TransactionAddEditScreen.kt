@@ -178,7 +178,7 @@ fun TransactionAddEditScreen(
             )
             
             if (uiState.error != null && uiState.error != "Invalid amount") {
-                com.example.ui.components.layout.ErrorBanner(
+                com.example.ui.components.feedback.ErrorBanner(
                     message = uiState.error!!,
                     visible = true
                 )

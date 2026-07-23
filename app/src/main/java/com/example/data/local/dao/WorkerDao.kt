@@ -18,6 +18,9 @@ interface WorkerDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorker(worker: WorkerEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWorkers(workers: List<WorkerEntity>)
+
     @Query("DELETE FROM workers WHERE id = :id")
     suspend fun deleteWorker(id: String)
 }

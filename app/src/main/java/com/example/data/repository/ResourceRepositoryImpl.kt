@@ -2,6 +2,8 @@ package com.example.data.repository
 
 import com.example.data.local.dao.*
 import com.example.data.local.entity.*
+import com.example.data.mapper.toDomain
+import com.example.data.mapper.toEntity
 import com.example.domain.model.*
 import com.example.domain.repository.ResourceRepository
 import kotlinx.coroutines.flow.Flow
@@ -103,72 +105,4 @@ class ResourceRepositoryImpl(
         attendanceDao.deleteAttendance(id)
     }
 
-    // Mappers
-    private fun MaterialEntity.toDomain() = Material(
-        id = id, name = name, category = category, unit = unit,
-        currentStock = currentStock, minimumStock = minimumStock, openingStock = openingStock,
-        purchasePricePaise = purchasePricePaise, averageCostPaise = averageCostPaise, remarks = remarks,
-        status = status, createdAt = createdAt, updatedAt = updatedAt
-    )
-
-    private fun Material.toEntity() = MaterialEntity(
-        id = id, name = name, category = category, unit = unit,
-        currentStock = currentStock, minimumStock = minimumStock, openingStock = openingStock,
-        purchasePricePaise = purchasePricePaise, averageCostPaise = averageCostPaise, remarks = remarks,
-        status = status, createdAt = createdAt, updatedAt = updatedAt
-    )
-
-    private fun WorkerEntity.toDomain() = Worker(
-        id = id, fullName = fullName, mobileNumber = mobileNumber, trade = trade,
-        dailyWagePaise = dailyWagePaise, experience = experience, joiningDate = joiningDate,
-        emergencyContact = emergencyContact, address = address, status = status,
-        createdAt = createdAt, updatedAt = updatedAt
-    )
-
-    private fun Worker.toEntity() = WorkerEntity(
-        id = id, fullName = fullName, mobileNumber = mobileNumber, trade = trade,
-        dailyWagePaise = dailyWagePaise, experience = experience, joiningDate = joiningDate,
-        emergencyContact = emergencyContact, address = address, status = status,
-        createdAt = createdAt, updatedAt = updatedAt
-    )
-
-    private fun SupplierEntity.toDomain() = Supplier(
-        id = id, name = name, phone = phone, gst = gst, address = address,
-        materialCategories = materialCategories.split(",").filter { it.isNotBlank() },
-        outstandingBalancePaise = outstandingBalancePaise, notes = notes,
-        createdAt = createdAt, updatedAt = updatedAt
-    )
-
-    private fun Supplier.toEntity() = SupplierEntity(
-        id = id, name = name, phone = phone, gst = gst, address = address,
-        materialCategories = materialCategories.joinToString(","),
-        outstandingBalancePaise = outstandingBalancePaise, notes = notes,
-        createdAt = createdAt, updatedAt = updatedAt
-    )
-
-    private fun ResourceAllocationEntity.toDomain() = ResourceAllocation(
-        id = id, projectId = projectId, date = date,
-        resourceType = ResourceType.valueOf(resourceType), resourceId = resourceId,
-        quantity = quantity, hours = hours, costPaise = costPaise, remarks = remarks,
-        siteDiaryId = siteDiaryId, transactionId = transactionId, createdAt = createdAt
-    )
-
-    private fun ResourceAllocation.toEntity() = ResourceAllocationEntity(
-        id = id, projectId = projectId, date = date,
-        resourceType = resourceType.name, resourceId = resourceId,
-        quantity = quantity, hours = hours, costPaise = costPaise, remarks = remarks,
-        siteDiaryId = siteDiaryId, transactionId = transactionId, createdAt = createdAt
-    )
-
-    private fun AttendanceEntity.toDomain() = Attendance(
-        id = id, workerId = workerId, projectId = projectId, date = date,
-        status = AttendanceStatus.valueOf(status), overtimeHours = overtimeHours,
-        hoursWorked = hoursWorked, remarks = remarks, createdAt = createdAt
-    )
-
-    private fun Attendance.toEntity() = AttendanceEntity(
-        id = id, workerId = workerId, projectId = projectId, date = date,
-        status = status.name, overtimeHours = overtimeHours,
-        hoursWorked = hoursWorked, remarks = remarks, createdAt = createdAt
-    )
 }

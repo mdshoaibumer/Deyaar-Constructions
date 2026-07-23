@@ -36,7 +36,10 @@ class MainActivity : FragmentActivity() {
         val securityManager = SecurityManager(this)
 
         setContent {
-            MyApplicationTheme {
+            val themePreferences = (application as ConstructionApp).themePreferences
+            val isDarkMode by themePreferences.isDarkModeEnabled.collectAsState(initial = false)
+
+            MyApplicationTheme(darkTheme = isDarkMode) {
                 var isUnlocked by remember { mutableStateOf(!securityPreferences.isAppLockEnabled) }
                 var authError by remember { mutableStateOf<String?>(null) }
 

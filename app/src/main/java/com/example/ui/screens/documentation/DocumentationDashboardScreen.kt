@@ -77,9 +77,7 @@ fun DocumentationDashboardScreen(
             }
 
             if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+                com.example.ui.components.layout.ShimmerCardList()
             } else {
                 when (selectedTabIndex) {
                     0 -> PhotoGallery(photos = uiState.photos, onPhotoClick = onNavigateToPhotoDetail)

@@ -31,7 +31,6 @@ class AppContainer(private val context: Context) {
             AppDatabase.DATABASE_NAME
         )
         .addMigrations(AppDatabase.MIGRATION_7_8, AppDatabase.MIGRATION_8_9)
-        .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
     }
 
@@ -172,5 +171,13 @@ class AppContainer(private val context: Context) {
 
     val deleteTransactionUseCase: DeleteTransactionUseCase by lazy {
         DeleteTransactionUseCase(transactionRepository)
+    }
+
+    val globalSearchUseCase: com.example.domain.usecase.search.GlobalSearchUseCase by lazy {
+        com.example.domain.usecase.search.GlobalSearchUseCase(
+            clientRepository,
+            projectRepository,
+            resourceRepository
+        )
     }
 }

@@ -18,6 +18,9 @@ interface MaterialDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertMaterial(material: MaterialEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMaterials(materials: List<MaterialEntity>)
+
     @Query("DELETE FROM materials WHERE id = :id")
     suspend fun deleteMaterial(id: String)
     

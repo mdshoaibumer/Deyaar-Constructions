@@ -46,13 +46,60 @@ import com.example.ui.screens.sitediary.SiteDiaryDetailsViewModelFactory
 import com.example.ui.screens.finance.FinanceLedgerScreen
 import com.example.ui.screens.finance.FinanceLedgerViewModel
 import com.example.ui.screens.finance.FinanceLedgerViewModelFactory
+import com.example.ui.screens.finance.PaymentDashboardScreen
+import com.example.ui.screens.finance.PaymentDashboardViewModel
+import com.example.ui.screens.finance.PaymentDashboardViewModelFactory
 import com.example.ui.screens.finance.TransactionAddEditScreen
 import com.example.ui.screens.finance.TransactionAddEditViewModel
 import com.example.ui.screens.finance.TransactionAddEditViewModelFactory
-import com.example.ui.screens.resource.*
-import com.example.ui.screens.documentation.*
-import com.example.ui.screens.attendance.*
-import com.example.ui.screens.reports.*
+import com.example.ui.screens.finance.PaymentRemindersScreen
+import com.example.ui.screens.finance.PaymentRemindersViewModel
+import com.example.ui.screens.finance.PaymentRemindersViewModelFactory
+import com.example.ui.screens.resource.ResourceDashboardScreen
+import com.example.ui.screens.resource.ResourceDashboardViewModel
+import com.example.ui.screens.resource.ResourceDashboardViewModelFactory
+import com.example.ui.screens.resource.MaterialListScreen
+import com.example.ui.screens.resource.MaterialListViewModel
+import com.example.ui.screens.resource.MaterialListViewModelFactory
+import com.example.ui.screens.resource.MaterialAddEditScreen
+import com.example.ui.screens.resource.MaterialAddEditViewModel
+import com.example.ui.screens.resource.MaterialAddEditViewModelFactory
+import com.example.ui.screens.resource.WorkerListScreen
+import com.example.ui.screens.resource.WorkerListViewModel
+import com.example.ui.screens.resource.WorkerListViewModelFactory
+import com.example.ui.screens.resource.WorkerAddEditScreen
+import com.example.ui.screens.resource.WorkerAddEditViewModel
+import com.example.ui.screens.resource.WorkerAddEditViewModelFactory
+import com.example.ui.screens.resource.SupplierListScreen
+import com.example.ui.screens.resource.SupplierListViewModel
+import com.example.ui.screens.resource.SupplierListViewModelFactory
+import com.example.ui.screens.resource.SupplierAddEditScreen
+import com.example.ui.screens.resource.SupplierAddEditViewModel
+import com.example.ui.screens.resource.SupplierAddEditViewModelFactory
+import com.example.ui.screens.resource.PayrollScreen
+import com.example.ui.screens.resource.PayrollViewModel
+import com.example.ui.screens.resource.PayrollViewModelFactory
+import com.example.ui.screens.resource.MaterialUsageScreen
+import com.example.ui.screens.resource.MaterialUsageViewModel
+import com.example.ui.screens.resource.MaterialUsageViewModelFactory
+import com.example.ui.screens.resource.WorkerPaymentHistoryScreen
+import com.example.ui.screens.resource.WorkerPaymentHistoryViewModel
+import com.example.ui.screens.resource.WorkerPaymentHistoryViewModelFactory
+import com.example.ui.screens.documentation.DocumentationDashboardScreen
+import com.example.ui.screens.documentation.DocumentationViewModel
+import com.example.ui.screens.documentation.DocumentationViewModelFactory
+import com.example.ui.screens.documentation.CameraScreen
+import com.example.ui.screens.documentation.PhotoDetailsScreen
+import com.example.ui.screens.documentation.DocumentDetailsScreen
+import com.example.ui.screens.attendance.AttendanceDailyScreen
+import com.example.ui.screens.attendance.AttendanceHistoryScreen
+import com.example.ui.screens.attendance.AttendanceHistoryViewModel
+import com.example.ui.screens.attendance.AttendanceHistoryViewModelFactory
+import com.example.ui.screens.attendance.AttendanceViewModel
+import com.example.ui.screens.attendance.AttendanceViewModelFactory
+import com.example.ui.screens.reports.ReportsScreen
+import com.example.ui.screens.reports.ReportsViewModel
+import com.example.ui.screens.reports.ReportsViewModelFactory
 
 
 
@@ -122,22 +169,22 @@ fun AppNavigation(
         navigation(startDestination = Screen.PinVerify.route, route = Screen.AuthGraph.route) {
             composable(Screen.PinVerify.route) {
                 PinScreen(
-                    title = "Enter PIN to Unlock",
-                    onSuccess = {
+                    onLoginSuccess = {
                         navController.navigate(Screen.MainGraph.route) {
                             popUpTo(Screen.AuthGraph.route) { inclusive = true }
                         }
-                    }
+                    },
+                    onUseBiometric = { }
                 )
             }
             composable(Screen.PinSetup.route) {
                 PinScreen(
-                    title = "Setup PIN",
-                    onSuccess = {
+                    onLoginSuccess = {
                         navController.navigate(Screen.MainGraph.route) {
                             popUpTo(Screen.AuthGraph.route) { inclusive = true }
                         }
-                    }
+                    },
+                    onUseBiometric = { }
                 )
             }
         }
@@ -153,7 +200,10 @@ fun AppNavigation(
                     onNavigateToProjects = { navController.navigate(Screen.Projects.route) },
                     onNavigateToResources = { navController.navigate(Screen.ResourceDashboard.route) },
                     onNavigateToReports = { navController.navigate(Screen.Reports.route) },
-                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+                    onNavigateToPayments = { navController.navigate(Screen.PaymentDashboard.route) },
+                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                    onNavigateToSearch = { navController.navigate(Screen.Search.route) },
+                    onNavigateToSitePhotos = { navController.navigate(Screen.Projects.route) }
                 )
             }
 
@@ -427,6 +477,32 @@ fun AppNavigation(
                     }
                 )
             }
+            
+            composable(Screen.PaymentDashboard.route) {
+                val viewModel: PaymentDashboardViewModel = viewModel(
+                    factory = PaymentDashboardViewModelFactory(
+                        appContainer.transactionRepository,
+                        appContainer.projectRepository
+                    )
+                )
+                PaymentDashboardScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Screen.PaymentReminders.route) {
+                val viewModel: PaymentRemindersViewModel = viewModel(
+                    factory = PaymentRemindersViewModelFactory(
+                        appContainer.projectRepository,
+                        appContainer.transactionRepository
+                    )
+                )
+                PaymentRemindersScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
 
             composable(
                 route = Screen.DocumentationDashboard.route,
@@ -483,12 +559,17 @@ fun AppNavigation(
             }
 
             composable(Screen.ResourceDashboard.route) {
+                val viewModel: ResourceDashboardViewModel = viewModel(
+                    factory = ResourceDashboardViewModelFactory(appContainer.resourceRepository)
+                )
                 ResourceDashboardScreen(
+                    viewModel = viewModel,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToMaterials = { navController.navigate(Screen.MaterialList.route) },
                     onNavigateToWorkers = { navController.navigate(Screen.WorkerList.route) },
                     onNavigateToSuppliers = { navController.navigate(Screen.SupplierList.route) },
-                    onNavigateToAttendance = { navController.navigate(Screen.AttendanceDaily.route) }
+                    onNavigateToAttendance = { navController.navigate(Screen.AttendanceDaily.route) },
+                    onNavigateToPayroll = { navController.navigate(Screen.Payroll.route) }
                 )
             }
 
@@ -625,6 +706,13 @@ fun AppNavigation(
                 )
             }
 
+            composable(Screen.Payroll.route) {
+                val viewModel: PayrollViewModel = viewModel(
+                    factory = PayrollViewModelFactory(appContainer.resourceRepository, appContainer.transactionRepository)
+                )
+                PayrollScreen(viewModel = viewModel, onNavigateBack = { navController.popBackStack() })
+            }
+
             // Material Usage
             composable(Screen.MaterialUsage.route) {
                 val viewModel: MaterialUsageViewModel = viewModel(
@@ -663,6 +751,18 @@ fun AppNavigation(
                 ReportsScreen(
                     viewModel = viewModel,
                     onNavigateBack = { navController.popBackStack() }
+                )
+            }
+
+            // Global Search
+            composable(Screen.Search.route) {
+                val viewModel: com.example.ui.screens.search.SearchViewModel = viewModel(
+                    factory = com.example.ui.screens.search.SearchViewModelFactory(appContainer.globalSearchUseCase)
+                )
+                com.example.ui.screens.search.SearchScreen(
+                    viewModel = viewModel,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToResult = { route -> navController.navigate(route) }
                 )
             }
         }

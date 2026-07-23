@@ -1,66 +1,80 @@
 package com.example.ui.theme
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 
-// Blueprint Blue (Primary)
-val PrimaryLight = Color(0xFF0056D2)
+// ============================================================
+// DEYAAR CONSTRUCTION - OFFICIAL PIXEL-PERFECT PALETTE
+// ============================================================
+
+// Primary
+val PrimaryLight = Color(0xFF002147)
 val OnPrimaryLight = Color(0xFFFFFFFF)
-val PrimaryContainerLight = Color(0xFFD9E2FF)
-val OnPrimaryContainerLight = Color(0xFF001945)
+val PrimaryContainerLight = Color(0xFFE6F0FA)
+val OnPrimaryContainerLight = Color(0xFF001122)
 
-val PrimaryDark = Color(0xFFB0C6FF)
-val OnPrimaryDark = Color(0xFF002D71)
-val PrimaryContainerDark = Color(0xFF0041A0)
-val OnPrimaryContainerDark = Color(0xFFD9E2FF)
+val PrimaryDark = Color(0xFF6699FF)
+val OnPrimaryDark = Color(0xFF001133)
+val PrimaryContainerDark = Color(0xFF002147)
+val OnPrimaryContainerDark = Color(0xFFE6F0FA)
 
-// Steel Gray (Secondary)
-val SecondaryLight = Color(0xFF525F7F)
+// Secondary
+val SecondaryLight = Color(0xFF515F74)
 val OnSecondaryLight = Color(0xFFFFFFFF)
-val SecondaryContainerLight = Color(0xFFD9E2FF)
-val OnSecondaryContainerLight = Color(0xFF0E1C38)
+val SecondaryContainerLight = Color(0xFFD5E3FC)
+val OnSecondaryContainerLight = Color(0xFF57657A)
 
-val SecondaryDark = Color(0xFFB9C6EA)
-val OnSecondaryDark = Color(0xFF24304D)
-val SecondaryContainerDark = Color(0xFF3B4765)
-val OnSecondaryContainerDark = Color(0xFFD9E2FF)
+val SecondaryDark = Color(0xFFB9C7DF)
+val OnSecondaryDark = Color(0xFF3A485B)
+val SecondaryContainerDark = Color(0xFF3A485B)
+val OnSecondaryContainerDark = Color(0xFFD5E3FC)
 
-// Safety Orange (Tertiary)
-val TertiaryLight = Color(0xFFE65100)
+// Tertiary
+val TertiaryLight = Color(0xFF545F73)
 val OnTertiaryLight = Color(0xFFFFFFFF)
-val TertiaryContainerLight = Color(0xFFFFDCCF)
-val OnTertiaryContainerLight = Color(0xFF350F00)
+val TertiaryContainerLight = Color(0xFF909BB1)
+val OnTertiaryContainerLight = Color(0xFF283345)
 
-val TertiaryDark = Color(0xFFFFB598)
-val OnTertiaryDark = Color(0xFF591C00)
-val TertiaryContainerDark = Color(0xFF822B00)
-val OnTertiaryContainerDark = Color(0xFFFFDCCF)
+val TertiaryDark = Color(0xFFBCC7DE)
+val OnTertiaryDark = Color(0xFF3C475A)
+val TertiaryContainerDark = Color(0xFF3C475A)
+val OnTertiaryContainerDark = Color(0xFF909BB1)
 
 // Neutrals & Backgrounds
-val BackgroundLight = Color(0xFFF8F9FA)
-val OnBackgroundLight = Color(0xFF1B1B1F)
-val SurfaceLight = Color(0xFFFFFFFF)
-val OnSurfaceLight = Color(0xFF1B1B1F)
-val SurfaceVariantLight = Color(0xFFE1E2EC)
-val OnSurfaceVariantLight = Color(0xFF44474F)
-val OutlineLight = Color(0xFF74777F)
+val BackgroundLight = Color(0xFFF7F9FB)
+val OnBackgroundLight = Color(0xFF191C1E)
+val SurfaceLight = Color(0xFFF7F9FB)
+val OnSurfaceLight = Color(0xFF191C1E)
+val SurfaceVariantLight = Color(0xFFE0E3E5)
+val OnSurfaceVariantLight = Color(0xFF584237)
+val OutlineLight = Color(0xFF8C7164)
+val SurfaceContainerLowestLight = Color(0xFFFFFFFF)
+val SurfaceContainerLowLight = Color(0xFFF2F4F6)
+val SurfaceContainerLight = Color(0xFFECEEF0)
+val SurfaceContainerHighLight = Color(0xFFE6E8EA)
+val SurfaceContainerHighestLight = Color(0xFFE0E3E5)
 
-val BackgroundDark = Color(0xFF121212)
-val OnBackgroundDark = Color(0xFFE2E2E6)
-val SurfaceDark = Color(0xFF1E1E1E)
-val OnSurfaceDark = Color(0xFFE2E2E6)
-val SurfaceVariantDark = Color(0xFF44474F)
-val OnSurfaceVariantDark = Color(0xFFC4C6D0)
-val OutlineDark = Color(0xFF8E9099)
+val BackgroundDark = Color(0xFF111416)
+val OnBackgroundDark = Color(0xFFF7F9FB)
+val SurfaceDark = Color(0xFF191C1E)
+val OnSurfaceDark = Color(0xFFF7F9FB)
+val SurfaceVariantDark = Color(0xFF584237)
+val OnSurfaceVariantDark = Color(0xFFE0E3E5)
+val OutlineDark = Color(0xFFE0C0B1)
+
+// Dark theme surface container hierarchy (proper visual layering)
+val SurfaceContainerLowestDark = Color(0xFF0E1012)
+val SurfaceContainerLowDark = Color(0xFF1B1E20)
+val SurfaceContainerDark = Color(0xFF1F2224)
+val SurfaceContainerHighDark = Color(0xFF282B2D)
+val SurfaceContainerHighestDark = Color(0xFF333638)
 
 // Semantic Colors (Status)
 val ErrorLight = Color(0xFFBA1A1A)
 val OnErrorLight = Color(0xFFFFFFFF)
 val ErrorContainerLight = Color(0xFFFFDAD6)
-val OnErrorContainerLight = Color(0xFF410002)
+val OnErrorContainerLight = Color(0xFF93000A)
 
 val ErrorDark = Color(0xFFFFB4AB)
 val OnErrorDark = Color(0xFF690005)
@@ -69,7 +83,6 @@ val OnErrorContainerDark = Color(0xFFFFDAD6)
 
 // ============================================================
 // Extended Color System — Semantic Status Colors
-// Accessible via DeyaarTheme.colors
 // ============================================================
 
 @Immutable

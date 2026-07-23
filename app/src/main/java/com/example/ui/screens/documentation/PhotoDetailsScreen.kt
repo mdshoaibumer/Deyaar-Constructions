@@ -60,9 +60,7 @@ fun PhotoDetailsScreen(
         }
     ) { paddingValues ->
         if (isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.ShimmerCardList(modifier = Modifier.padding(paddingValues))
         } else if (photo != null) {
             Column(
                 modifier = Modifier

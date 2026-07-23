@@ -60,6 +60,41 @@ class DashboardRepositoryImpl(
         }
     }
 
+    override fun getUpcomingDeadlines(limit: Int): Flow<List<Project>> {
+        return projectDao.getUpcomingDeadlines(System.currentTimeMillis(), limit).map { projects ->
+            projects.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun getMonthlyExpenses(monthsBack: Int): List<Long> {
+        val result = mutableListOf<Long>()
+        val cal = Calendar.getInstance()
+        // Start from current month going back
+        for (i in monthsBack - 1 downTo 0) {
+            val periodCal = Calendar.getInstance()
+            periodCal.add(Calendar.MONTH, -i)
+            periodCal.set(Calendar.DAY_OF_MONTH, 1)
+            periodCal.set(Calendar.HOUR_OF_DAY, 0)
+            periodCal.set(Calendar.MINUTE, 0)
+            periodCal.set(Calendar.SECOND, 0)
+            periodCal.set(Calendar.MILLISECOND, 0)
+            val startDate = periodCal.timeInMillis
+
+            periodCal.add(Calendar.MONTH, 1)
+            val endDate = periodCal.timeInMillis
+
+            val expenses = transactionDao.getExpensesForPeriod(startDate, endDate)
+            result.add(expenses)
+        }
+        return result
+    }
+
+    override fun getRecentExpenseDescriptions(limit: Int): Flow<List<Pair<String, Long>>> {
+        return transactionDao.getRecentExpenses(limit).map { entities ->
+            entities.map { (it.description ?: it.category) to it.amountPaise }
+        }
+    }
+
     private fun getTodayStartMillis(): Long {
         val cal = Calendar.getInstance()
         cal.set(Calendar.HOUR_OF_DAY, 0)

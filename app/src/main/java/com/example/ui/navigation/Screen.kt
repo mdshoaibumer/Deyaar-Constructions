@@ -60,6 +60,8 @@ sealed class Screen(val route: String) {
     }
     
     data object Finance : Screen("finance")
+    data object PaymentDashboard : Screen("payment_dashboard")
+    data object PaymentReminders : Screen("payment_reminders")
     data object Settings : Screen("settings")
     
     // Documentation
@@ -118,6 +120,12 @@ sealed class Screen(val route: String) {
         fun createRoute(workerId: String) = "worker_payment_history/$workerId"
     }
 
+    // Payroll
+    data object Payroll : Screen("payroll")
+
     // Reports
     data object Reports : Screen("reports")
+
+    // Search
+    data object Search : Screen("search")
 }

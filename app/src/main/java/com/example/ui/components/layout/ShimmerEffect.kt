@@ -110,7 +110,7 @@ fun ShimmerListItem(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(Dimens.radiusMedium))
+            .clip(RoundedCornerShape(Dimens.cornerRadiusLg))
             .background(MaterialTheme.colorScheme.surface)
             .padding(Dimens.spaceMedium),
         verticalAlignment = Alignment.CenterVertically
@@ -204,7 +204,7 @@ fun ShimmerDashboard(modifier: Modifier = Modifier) {
                     modifier = Modifier
                         .weight(1f)
                         .height(100.dp)
-                        .clip(RoundedCornerShape(Dimens.radiusLarge))
+                        .clip(RoundedCornerShape(Dimens.cornerRadiusXl))
                         .background(brush)
                 )
             }
@@ -217,7 +217,7 @@ fun ShimmerDashboard(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(180.dp)
-                .clip(RoundedCornerShape(Dimens.radiusLarge))
+                .clip(RoundedCornerShape(Dimens.cornerRadiusXl))
                 .background(brush)
         )
 
@@ -228,7 +228,7 @@ fun ShimmerDashboard(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(140.dp)
-                .clip(RoundedCornerShape(Dimens.radiusLarge))
+                .clip(RoundedCornerShape(Dimens.cornerRadiusXl))
                 .background(brush)
         )
     }

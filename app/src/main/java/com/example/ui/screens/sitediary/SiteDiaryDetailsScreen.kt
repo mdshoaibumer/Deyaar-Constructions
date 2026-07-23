@@ -50,9 +50,7 @@ fun SiteDiaryDetailsScreen(
         }
     ) { paddingValues ->
         if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            com.example.ui.components.layout.ShimmerCardList(modifier = Modifier.padding(paddingValues))
         } else if (uiState.diaryDetails != null) {
             val details = uiState.diaryDetails!!
             Column(

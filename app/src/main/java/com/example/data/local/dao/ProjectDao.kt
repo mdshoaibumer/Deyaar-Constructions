@@ -29,6 +29,9 @@ interface ProjectDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProject(project: ProjectEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertProjects(projects: List<ProjectEntity>)
+
     @Update
     suspend fun updateProject(project: ProjectEntity)
 
@@ -66,4 +69,7 @@ interface ProjectDao {
 
     @Query("SELECT COALESCE(SUM(contractValuePaise), 0) FROM projects WHERE contractValuePaise IS NOT NULL")
     fun getTotalContractValue(): Flow<Long>
+
+    @Query("SELECT * FROM projects WHERE status IN ('ACTIVE', 'PLANNING') AND expectedCompletionDate IS NOT NULL AND expectedCompletionDate > :now ORDER BY expectedCompletionDate ASC LIMIT :limit")
+    fun getUpcomingDeadlines(now: Long, limit: Int): Flow<List<ProjectEntity>>
 }

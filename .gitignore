@@ -25,3 +25,10 @@ add_indexes.sh
 Thumbs.db
 *.swp
 *~
+
+# Design reference assets (not part of app source)
+stitch_apex_construction_pro/
+
+# Generated audit/readiness docs
+PRODUCTION_READINESS_AUDIT.md
+PRODUCTION_READINESS_FINAL.md

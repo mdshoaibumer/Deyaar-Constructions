@@ -120,7 +120,7 @@ fun ProjectAddEditScreen(
                     .padding(Dimens.spaceMedium),
                 verticalArrangement = Arrangement.spacedBy(Dimens.spaceMedium)
             ) {
-                com.example.ui.components.layout.ErrorBanner(
+                com.example.ui.components.feedback.ErrorBanner(
                     message = uiState.error ?: "",
                     visible = uiState.error != null
                 )
