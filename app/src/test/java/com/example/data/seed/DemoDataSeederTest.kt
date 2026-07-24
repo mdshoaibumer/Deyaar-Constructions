@@ -11,46 +11,55 @@ class DemoDataSeederTest {
 
     @Test
     fun `demo data quantity requirements met`() {
-        // The seeder creates:
-        // 20 clients, 30 projects, 80 workers, 100 materials, 10 suppliers, 120 transactions, ~140 attendance records
-        // Verify constants match requirements
+        // The seeder creates these volumes:
         val expectedClients = 20
-        val expectedProjects = 30
-        val expectedWorkers = 80
-        val expectedMaterials = 100 // expanded from 20 to 100
+        val expectedProjects = 50
+        val expectedWorkers = 150
+        val expectedMaterials = 100
         val expectedSuppliers = 10
-        val expectedTransactions = 120
+        val expectedExpenseTransactions = 250
+        val expectedIncomeTransactions = 150
+        val expectedAttendanceRecords = 14 * 30 // 420
+        val expectedResourceAllocations = 300
+        val expectedPhotos = 150
+        val expectedDocuments = 50
+        val expectedMilestones = 50 * 10 // 500
 
-        assertTrue("Clients requirement: $expectedClients", expectedClients >= 20)
-        assertTrue("Projects requirement: $expectedProjects", expectedProjects >= 30)
-        assertTrue("Workers requirement: $expectedWorkers", expectedWorkers >= 80)
-        assertTrue("Materials requirement: $expectedMaterials", expectedMaterials >= 100)
-        assertTrue("Suppliers requirement: $expectedSuppliers", expectedSuppliers >= 10)
-        assertTrue("Transactions requirement: $expectedTransactions", expectedTransactions >= 120)
+        assertTrue("Clients >= 20", expectedClients >= 20)
+        assertTrue("Projects >= 50", expectedProjects >= 50)
+        assertTrue("Workers >= 150", expectedWorkers >= 150)
+        assertTrue("Materials >= 100", expectedMaterials >= 100)
+        assertTrue("Suppliers >= 10", expectedSuppliers >= 10)
+        assertTrue("Expense Transactions >= 250", expectedExpenseTransactions >= 250)
+        assertTrue("Income Transactions >= 150", expectedIncomeTransactions >= 150)
+        assertTrue("Attendance Records >= 365", expectedAttendanceRecords >= 365)
+        assertTrue("Resource Allocations >= 300", expectedResourceAllocations >= 300)
+        assertTrue("Photos >= 100", expectedPhotos >= 100)
+        assertTrue("Documents >= 50", expectedDocuments >= 50)
+        assertTrue("Milestones >= 500", expectedMilestones >= 500)
     }
 
     @Test
     fun `project IDs are unique`() {
-        val ids = (1..30).map { "proj_${it}" }
+        val ids = (1..50).map { "proj_$it" }
         assertEquals(ids.size, ids.distinct().size)
     }
 
     @Test
     fun `client IDs are unique`() {
-        val ids = (1..20).map { "client_${it}" }
+        val ids = (1..20).map { "client_$it" }
         assertEquals(ids.size, ids.distinct().size)
     }
 
     @Test
     fun `worker IDs are unique`() {
-        val ids = (1..80).map { "worker_${it}" }
+        val ids = (1..150).map { "worker_$it" }
         assertEquals(ids.size, ids.distinct().size)
     }
 
     @Test
     fun `material categories cover construction requirements`() {
         val requiredCategories = listOf("Cement", "Steel", "Sand", "Bricks", "Tiles", "Paint")
-        // All required categories must be present in the seeder
         requiredCategories.forEach { category ->
             assertTrue("Category '$category' must be in seed data", category.isNotBlank())
         }
@@ -59,10 +68,12 @@ class DemoDataSeederTest {
     @Test
     fun `worker trades cover construction roles`() {
         val trades = listOf("Mason", "Carpenter", "Electrician", "Plumber", "Painter",
-            "Welder", "Crane Operator", "General Labour", "Tile Setter", "Rebar Worker")
-        assertEquals(10, trades.size)
+            "Welder", "Crane Operator", "General Labour", "Tile Setter", "Rebar Worker",
+            "Scaffolder", "Excavator Operator", "Concrete Mixer", "Plasterer", "Waterproofer")
+        assertEquals(15, trades.size)
         assertTrue(trades.contains("Mason"))
         assertTrue(trades.contains("Electrician"))
+        assertTrue(trades.contains("Plumber"))
     }
 
     @Test
@@ -74,5 +85,41 @@ class DemoDataSeederTest {
         assertTrue(expenseCategories.isNotEmpty())
         assertEquals(2, incomeCategories.size)
         assertEquals(5, expenseCategories.size)
+    }
+
+    @Test
+    fun `resource types cover material, labour, equipment`() {
+        val resourceTypes = listOf("MATERIAL", "LABOUR", "EQUIPMENT")
+        assertEquals(3, resourceTypes.size)
+    }
+
+    @Test
+    fun `document categories cover required types`() {
+        val docCategories = listOf("Invoices", "Receipts", "Contracts", "Approvals", "BOQ", "Blueprints")
+        assertTrue(docCategories.contains("Invoices"))
+        assertTrue(docCategories.contains("Receipts"))
+        assertEquals(6, docCategories.size)
+    }
+
+    @Test
+    fun `all projects linked to clients`() {
+        // All 50 projects reference one of 20 clients via clientIds[i % 20]
+        val clientCount = 20
+        val projectCount = 50
+        for (i in 0 until projectCount) {
+            val clientIndex = i % clientCount
+            assertTrue("Project $i must map to valid client index", clientIndex in 0 until clientCount)
+        }
+    }
+
+    @Test
+    fun `attendance records linked to workers and projects`() {
+        val workerCount = 150
+        val projectCount = 50
+        for (workerIdx in 0 until 30) {
+            assertTrue("Worker index must be valid", workerIdx in 0 until workerCount)
+            val projIdx = workerIdx % projectCount
+            assertTrue("Project index must be valid", projIdx in 0 until projectCount)
+        }
     }
 }

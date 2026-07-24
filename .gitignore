@@ -31,4 +31,5 @@ stitch_apex_construction_pro/
 
 # Generated audit/readiness docs
 PRODUCTION_READINESS_AUDIT.md
-PRODUCTION_READINESS_FINAL.md
+PRODUCTION_READINESS_FINAL.md*.apk
+logcat_output.txt

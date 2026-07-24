@@ -99,13 +99,13 @@ fun PinScreen(
                 Spacer(modifier = Modifier.width(Dimens.spaceSmall))
                 Column {
                     Text(
-                        text = "DEYAAR",
+                        text = "Deyaar Constructions",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "CONSTRUCTION",
+                        text = "Building Your Vision",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = MaterialTheme.typography.labelSmall.letterSpacing * 2

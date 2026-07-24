@@ -17,6 +17,9 @@ interface ResourceAllocationDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAllocation(allocation: ResourceAllocationEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAllocations(allocations: List<ResourceAllocationEntity>)
     
     @Query("DELETE FROM resource_allocations WHERE id = :id")
     suspend fun deleteAllocation(id: String)

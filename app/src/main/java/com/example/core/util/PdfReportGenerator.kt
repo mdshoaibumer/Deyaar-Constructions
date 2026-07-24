@@ -114,7 +114,7 @@ object PdfReportGenerator {
         yPosition += 15f
 
         // Company Header
-        canvas.drawText("DEYAAR CONSTRUCTIONS", MARGIN, yPosition + 14f, headerPaint)
+        canvas.drawText("DEYAAR CONSTRUCTIONS - Building Your Vision", MARGIN, yPosition + 14f, headerPaint)
         yPosition += 30f
 
         // Table Header

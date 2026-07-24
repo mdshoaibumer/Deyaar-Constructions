@@ -144,7 +144,7 @@ fun SettingsScreen(
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Box(modifier = Modifier.background(MaterialTheme.colorScheme.surfaceContainerLow, MaterialTheme.shapes.small).border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), MaterialTheme.shapes.small).padding(horizontal = 4.dp, vertical = 2.dp)) {
-                                Text("DEYAAR CONSTRUCTIONS HQ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
+                                Text("DEYAAR CONSTRUCTIONS", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface)
                             }
                         }
                     }

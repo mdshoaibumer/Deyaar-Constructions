@@ -27,13 +27,15 @@ class DemoDataSeeder(private val database: AppDatabase) {
         seedAttendance()
         seedPhotos()
         seedMilestones()
+        seedResourceAllocations()
+        seedDocuments()
     }
 
     private val now = System.currentTimeMillis()
     private val day = 86_400_000L
     private val clientIds = (1..20).map { "client_${UUID.randomUUID().toString().take(8)}" }
-    private val projectIds = (1..30).map { "proj_${UUID.randomUUID().toString().take(8)}" }
-    private val workerIds = (1..80).map { "worker_${UUID.randomUUID().toString().take(8)}" }
+    private val projectIds = (1..50).map { "proj_${UUID.randomUUID().toString().take(8)}" }
+    private val workerIds = (1..150).map { "worker_${UUID.randomUUID().toString().take(8)}" }
 
     private suspend fun seedClients() {
         val clients = listOf(
@@ -88,9 +90,15 @@ class DemoDataSeeder(private val database: AppDatabase) {
             "Amber Valley Township", "Pearl Harbour Apartments", "Jade Point Offices",
             "Opal Heights", "Garnet Complex", "Ivory Towers Phase 3",
             "Bronze Gate Industrial", "Copper Lane Housing", "Marble Arch Mall",
-            "Granite Peak Villas", "Quartz Bay Resort"
+            "Granite Peak Villas", "Quartz Bay Resort", "Skyline Residences",
+            "Palm Grove Villas", "Cedar Heights Apartments", "Oak Park Commercial",
+            "Maple Leaf Residency", "Pine Ridge Estate", "Willow Creek Housing",
+            "Birch Wood Towers", "Elm Street Complex", "Lotus Pond Villas",
+            "Jasmine Gardens Phase 2", "Orchid Heights Tower B", "Tulip Bay Apartments",
+            "Sunflower Residency", "Rose Garden Estate", "Daisy View Homes",
+            "Lavender Hills", "Marigold Complex", "Iris Point Towers", "Poppy Fields Estate"
         )
-        val projects = names.mapIndexed { i, name ->
+        val projects = names.take(50).mapIndexed { i, name ->
             val status = statuses[i % statuses.size]
             val startOffset = (60 + i * 10) * day
             val contractVal = ((50 + i * 15) * 100_000L) * 100 // in paise
@@ -128,15 +136,18 @@ class DemoDataSeeder(private val database: AppDatabase) {
 
     private suspend fun seedWorkers() {
         val trades = listOf("Mason", "Carpenter", "Electrician", "Plumber", "Painter",
-            "Welder", "Crane Operator", "General Labour", "Tile Setter", "Rebar Worker")
+            "Welder", "Crane Operator", "General Labour", "Tile Setter", "Rebar Worker",
+            "Scaffolder", "Excavator Operator", "Concrete Mixer", "Plasterer", "Waterproofer")
         val firstNames = listOf("Raju", "Suresh", "Mohan", "Dinesh", "Ganesh", "Amar", "Vijay",
             "Ashok", "Ramesh", "Gopal", "Kiran", "Manoj", "Nandu", "Pappu", "Qasim",
-            "Ratan", "Shyam", "Tarun", "Umesh", "Vinod")
+            "Ratan", "Shyam", "Tarun", "Umesh", "Vinod", "Wasim", "Yasin", "Zaheer",
+            "Balram", "Chhotu", "Deepu", "Farhan", "Gopi", "Hari", "Ismail")
         val lastNames = listOf("Yadav", "Patel", "Sharma", "Singh", "Kumar", "Gupta", "Thakur",
             "Mandal", "Das", "Verma", "Chauhan", "Jha", "Mishra", "Tiwari", "Pandey",
-            "Rajput", "Meena", "Saini", "Nair", "Reddy")
+            "Rajput", "Meena", "Saini", "Nair", "Reddy", "Khan", "Ansari", "Paswan",
+            "Mahto", "Oraon", "Munda", "Gond", "Baiga", "Korwa", "Lohar")
 
-        val workers = (0 until 80).map { i ->
+        val workers = (0 until 150).map { i ->
             WorkerEntity(
                 id = workerIds[i],
                 fullName = "${firstNames[i % firstNames.size]} ${lastNames[i % lastNames.size]}",
@@ -147,7 +158,7 @@ class DemoDataSeeder(private val database: AppDatabase) {
                 joiningDate = now - (90 + i * 3) * day,
                 emergencyContact = "9${(200000000 + i * 22222222L) % 900000000 + 100000000}",
                 address = "Village ${firstNames[i % firstNames.size]}pur, District ${lastNames[(i + 5) % lastNames.size]}",
-                status = if (i < 70) "ACTIVE" else "INACTIVE",
+                status = if (i < 130) "ACTIVE" else "INACTIVE",
                 createdAt = now - (90 + i * 3) * day,
                 updatedAt = now - (i % 10) * day
             )
@@ -303,44 +314,69 @@ class DemoDataSeeder(private val database: AppDatabase) {
             "LABOUR_PAYMENT", "TRANSPORT", "SITE_EXPENSE", "MISCELLANEOUS")
         val paymentMethods = listOf("CASH", "UPI", "BANK_TRANSFER", "CHEQUE")
 
-        val transactions = (0 until 150).map { i ->
-            val isIncome = i % 4 == 0 || i % 5 == 0
-            val cat = if (isIncome) categories[i % 2] else categories[2 + (i % 5)]
-            val amount = ((5000 + i * 2500) * 100).toLong() // in paise
+        // 250 expense transactions + 150 income transactions = 400 total
+        val expenseTransactions = (0 until 250).map { i ->
+            val cat = categories[2 + (i % 5)] // MATERIAL_PURCHASE, LABOUR_PAYMENT, TRANSPORT, SITE_EXPENSE, MISCELLANEOUS
+            val amount = ((3000 + i * 1500) * 100).toLong() // in paise
 
             TransactionEntity(
-                id = "txn_${UUID.randomUUID().toString().take(8)}",
+                id = "txn_exp_${UUID.randomUUID().toString().take(8)}",
                 projectId = projectIds[i % projectIds.size],
-                date = now - (120 - i) * day,
-                time = now - (120 - i) * day + 8 * 3600000,
-                type = if (isIncome) "INCOME" else "EXPENSE",
+                date = now - (250 - i) * day,
+                time = now - (250 - i) * day + 9 * 3600000,
+                type = "EXPENSE",
                 category = cat,
                 amountPaise = amount,
                 paymentMethod = paymentMethods[i % paymentMethods.size],
-                referenceNumber = if (i % 3 == 0) "REF${100000 + i}" else null,
+                referenceNumber = if (i % 3 == 0) "REF${200000 + i}" else null,
                 description = when (cat) {
-                    "CLIENT_ADVANCE" -> "Advance payment from client"
-                    "CLIENT_PAYMENT" -> "Progress payment received"
-                    "MATERIAL_PURCHASE" -> "Material purchase - ${listOf("Cement", "Steel", "Sand", "Bricks")[i % 4]}"
+                    "MATERIAL_PURCHASE" -> "Material purchase - ${listOf("Cement", "Steel", "Sand", "Bricks", "Tiles", "Paint")[i % 6]}"
                     "LABOUR_PAYMENT" -> "Weekly wages - ${workerIds[i % workerIds.size]}"
-                    "TRANSPORT" -> "Material transport charges"
-                    "SITE_EXPENSE" -> "Site miscellaneous expense"
-                    else -> "General expense"
+                    "TRANSPORT" -> "Material transport charges - Trip ${i + 1}"
+                    "SITE_EXPENSE" -> "Site expense - ${listOf("Food", "Water", "Electricity", "Tools", "Fuel")[i % 5]}"
+                    else -> "Miscellaneous expense"
                 },
                 createdBy = "Alex Carter",
                 isDeleted = false,
-                createdAt = now - (120 - i) * day,
-                updatedAt = now - (120 - i) * day,
+                createdAt = now - (250 - i) * day,
+                updatedAt = now - (250 - i) * day,
                 attachmentPath = null
             )
         }
-        database.transactionDao().insertTransactions(transactions)
+
+        val incomeTransactions = (0 until 150).map { i ->
+            val cat = if (i % 3 == 0) "CLIENT_ADVANCE" else "CLIENT_PAYMENT"
+            val amount = ((50000 + i * 25000) * 100).toLong() // in paise (larger amounts for income)
+
+            TransactionEntity(
+                id = "txn_inc_${UUID.randomUUID().toString().take(8)}",
+                projectId = projectIds[i % projectIds.size],
+                date = now - (200 - i) * day,
+                time = now - (200 - i) * day + 11 * 3600000,
+                type = "INCOME",
+                category = cat,
+                amountPaise = amount,
+                paymentMethod = paymentMethods[i % paymentMethods.size],
+                referenceNumber = "RCP${300000 + i}",
+                description = when (cat) {
+                    "CLIENT_ADVANCE" -> "Advance payment from client - ${clientIds[i % clientIds.size].takeLast(4)}"
+                    else -> "Progress payment received - Milestone ${1 + i % 5}"
+                },
+                createdBy = "Alex Carter",
+                isDeleted = false,
+                createdAt = now - (200 - i) * day,
+                updatedAt = now - (200 - i) * day,
+                attachmentPath = null
+            )
+        }
+
+        database.transactionDao().insertTransactions(expenseTransactions + incomeTransactions)
     }
 
     private suspend fun seedAttendance() {
         val statuses = listOf("PRESENT", "PRESENT", "PRESENT", "PRESENT", "ABSENT", "HALF_DAY")
-        // Seed 7 days of attendance for first 30 workers (210 records)
-        val records = (0 until 7).flatMap { dayOffset ->
+        // Seed 14 days of attendance for first 30 workers (420 records > 365 required)
+        val records = (0 until 14).flatMap { dayOffset ->
             val date = todayStart() - dayOffset * day
             (0 until 30).map { workerIdx ->
                 AttendanceEntity(
@@ -389,7 +425,7 @@ class DemoDataSeeder(private val database: AppDatabase) {
             "First Floor Slab", "Brickwork Complete", "Plastering Complete",
             "Electrical Wiring", "Plumbing Complete", "Flooring & Tiling", "Handover"
         )
-        val milestones = projectIds.flatMap { projId ->
+        val milestones = projectIds.take(50).flatMap { projId ->
             milestoneNames.mapIndexed { idx, name ->
                 MilestoneEntity(
                     id = "ms_${UUID.randomUUID().toString().take(8)}",
@@ -412,5 +448,59 @@ class DemoDataSeeder(private val database: AppDatabase) {
         cal.set(Calendar.SECOND, 0)
         cal.set(Calendar.MILLISECOND, 0)
         return cal.timeInMillis
+    }
+
+    private suspend fun seedResourceAllocations() {
+        val resourceTypes = listOf("MATERIAL", "LABOUR", "EQUIPMENT")
+        val allocations = (0 until 300).map { i ->
+            ResourceAllocationEntity(
+                id = "alloc_${UUID.randomUUID().toString().take(8)}",
+                projectId = projectIds[i % projectIds.size],
+                date = now - (300 - i) * day,
+                resourceType = resourceTypes[i % resourceTypes.size],
+                resourceId = when (i % 3) {
+                    0 -> "mat_${(i % 100).toString().padStart(4, '0')}" // material ref
+                    1 -> workerIds[i % workerIds.size]
+                    else -> "equip_${i % 10}"
+                },
+                quantity = (1 + i % 20).toDouble(),
+                hours = if (i % 3 == 1) 8.0 else null,
+                costPaise = ((1000 + i * 500) * 100).toLong(),
+                remarks = when (i % 3) {
+                    0 -> "Material issued to site - ${listOf("Cement", "Steel", "Sand", "Bricks", "Tiles", "Paint")[i % 6]}"
+                    1 -> "Labour allocation - ${listOf("Mason", "Carpenter", "Electrician", "Plumber")[i % 4]}"
+                    else -> "Equipment usage - ${listOf("Crane", "Mixer", "Vibrator", "Excavator")[i % 4]}"
+                },
+                siteDiaryId = null,
+                transactionId = null,
+                createdAt = now - (300 - i) * day
+            )
+        }
+        database.resourceAllocationDao().insertAllocations(allocations)
+    }
+
+    private suspend fun seedDocuments() {
+        val docCategories = listOf("Invoices", "Receipts", "Contracts", "Approvals", "BOQ", "Blueprints")
+        val documents = (0 until 50).map { i ->
+            DocumentEntity(
+                id = "doc_${UUID.randomUUID().toString().take(8)}",
+                projectId = projectIds[i % projectIds.size],
+                title = when (docCategories[i % docCategories.size]) {
+                    "Invoices" -> "Invoice #${1000 + i} - ${listOf("Cement Supply", "Steel Delivery", "Labour Contract")[i % 3]}"
+                    "Receipts" -> "Receipt #${2000 + i} - Payment ${listOf("Advance", "Progress", "Final")[i % 3]}"
+                    "Contracts" -> "Contract - ${projectIds[i % projectIds.size].takeLast(4)} Work Agreement"
+                    "Approvals" -> "Approval - ${listOf("Building Plan", "Structural", "Electrical", "Plumbing")[i % 4]}"
+                    "BOQ" -> "BOQ - ${listOf("Civil", "Electrical", "Plumbing", "Finishing")[i % 4]} Works"
+                    else -> "Blueprint - ${listOf("Ground Floor", "First Floor", "Elevation", "Section")[i % 4]}"
+                },
+                category = docCategories[i % docCategories.size],
+                uri = "content://demo/documents/doc_$i.pdf",
+                description = "Project document ${i + 1}",
+                tags = listOf(docCategories[i % docCategories.size], "Project"),
+                createdAt = now - (100 - i) * day,
+                updatedAt = now - (50 - i % 50) * day
+            )
+        }
+        documents.forEach { database.documentDao().insertDocument(it) }
     }
 }
