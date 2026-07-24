@@ -2,9 +2,11 @@ package com.example.ui.screens.project
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.Dimens
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,11 +21,13 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.core.util.CurrencyUtils
@@ -202,18 +206,37 @@ fun CustomFilterChip(
     icon: ImageVector,
     onClick: () -> Unit
 ) {
-    val containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer
-    val contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-    val borderColor = if (selected) androidx.compose.ui.graphics.Color.Transparent else MaterialTheme.colorScheme.outlineVariant
+    val animatedContainerColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer,
+        animationSpec = tween(300),
+        label = "chip_container_color"
+    )
+    
+    val animatedContentColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(300),
+        label = "chip_content_color"
+    )
+    
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.05f else 1f,
+        animationSpec = spring(stiffness = 400f, damping = 12f),
+        label = "chip_scale"
+    )
 
     Box(
         modifier = Modifier
+            .scale(scale)
             .clip(RoundedCornerShape(50))
-            .background(containerColor)
+            .background(animatedContainerColor)
             .then(
-                if (!selected) Modifier.border(1.dp, borderColor, RoundedCornerShape(50)) else Modifier
+                if (!selected) Modifier.border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50)) else Modifier
             )
-            .clickable(onClick = onClick)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(bounded = true),
+                onClick = onClick
+            )
             .padding(horizontal = Dimens.spaceMedium, vertical = 6.dp)
     ) {
         Row(
@@ -224,12 +247,12 @@ fun CustomFilterChip(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = contentColor
+                tint = animatedContentColor
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelMedium,
-                color = contentColor
+                color = animatedContentColor
             )
         }
     }

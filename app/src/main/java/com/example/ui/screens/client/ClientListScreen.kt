@@ -2,9 +2,11 @@ package com.example.ui.screens.client
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.ui.theme.Dimens
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,10 +18,12 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.example.ui.components.DeyaarTopAppBar
@@ -117,16 +121,38 @@ fun ClientListScreen(
                 ) {
                     listOf("All Clients", "Active", "VIP", "Inactive").forEach { filter ->
                         val isSelected = selectedFilter == filter
+                        
+                        val animatedBgColor by animateColorAsState(
+                            targetValue = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest,
+                            animationSpec = tween(300),
+                            label = "client_chip_bg_$filter"
+                        )
+                        
+                        val animatedTextColor by animateColorAsState(
+                            targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                            animationSpec = tween(300),
+                            label = "client_chip_text_$filter"
+                        )
+                        
+                        val scale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.05f else 1f,
+                            animationSpec = spring(stiffness = 400f, damping = 12f),
+                            label = "client_chip_scale_$filter"
+                        )
+                        
                         Box(
                             modifier = Modifier
+                                .scale(scale)
                                 .clip(RoundedCornerShape(50))
-                                .background(if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest)
+                                .background(animatedBgColor)
                                 .then(
-                                    if (!isSelected) Modifier.border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50)) else Modifier
+                                    if (!isSelected) Modifier.border(1.5.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50)) else Modifier
                                 )
-                                .clickable {
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = rememberRipple(bounded = true)
+                                ) {
                                     selectedFilter = filter
-                                    // Reset favorites
                                     if (uiState.favoritesOnly && filter != "VIP") viewModel.toggleFavoriteFilter()
                                     when (filter) {
                                         "All Clients" -> viewModel.onStatusFilterChanged(com.example.domain.usecase.client.ClientStatusFilter.ALL)
@@ -143,7 +169,7 @@ fun ClientListScreen(
                             Text(
                                 text = filter,
                                 style = MaterialTheme.typography.labelMedium,
-                                color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
+                                color = animatedTextColor
                             )
                         }
                     }

@@ -1,19 +1,22 @@
 package com.example.ui.screens.dashboard
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -243,16 +246,36 @@ fun BentoCard(
     badgeTextColor: Color = Color.Transparent,
     isAlert: Boolean = false
 ) {
+    var isPressed by remember { mutableStateOf(false) }
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(stiffness = 500f, damping = 15f),
+        label = "bento_card_scale"
+    )
+    
+    val borderColor by animateColorAsState(
+        targetValue = if (isPressed) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f) 
+                      else if (isAlert) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surfaceVariant,
+        animationSpec = tween(150),
+        label = "bento_card_border"
+    )
+    
     Box(
         modifier = modifier
+            .scale(scale)
             .clip(MaterialTheme.shapes.large)
             .background(MaterialTheme.colorScheme.surface)
             .border(
-                width = 1.dp,
-                color = if (isAlert) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.surfaceVariant,
+                width = 1.5.dp,
+                color = borderColor,
                 shape = MaterialTheme.shapes.large
             )
-            .clickable { }
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(bounded = true),
+                onClick = { }
+            )
             .padding(Dimens.spaceMedium)
             .semantics(mergeDescendants = true) {
                 contentDescription = "$title: $value"
@@ -267,7 +290,7 @@ fun BentoCard(
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = null, // Covered by parent semantics
+                    contentDescription = null,
                     tint = if (isAlert) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.size(24.dp)
                 )
@@ -494,20 +517,41 @@ fun QuickActionButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var isPressed by remember { mutableStateOf(false) }
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(stiffness = 600f, damping = 12f),
+        label = "quick_action_scale"
+    )
+    
+    val bgColor by animateColorAsState(
+        targetValue = if (isPressed) MaterialTheme.colorScheme.primaryContainer 
+                      else MaterialTheme.colorScheme.surface,
+        animationSpec = tween(150),
+        label = "quick_action_bg"
+    )
+    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = modifier
+            .scale(scale)
             .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
-            .clickable(onClick = onClick, onClickLabel = "Open $label")
+            .background(bgColor)
+            .border(1.5.dp, MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.medium)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(bounded = true),
+                onClick = onClick,
+                onClickLabel = "Open $label"
+            )
             .padding(Dimens.spaceMedium)
             .semantics { role = Role.Button }
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = null, // Label provides description
+            contentDescription = null,
             tint = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.size(24.dp)
         )
@@ -515,7 +559,8 @@ fun QuickActionButton(
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            fontWeight = FontWeight.Medium
         )
     }
 }
