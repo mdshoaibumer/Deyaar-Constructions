@@ -23,8 +23,9 @@ import androidx.compose.ui.unit.dp
 import com.example.ui.theme.Dimens
 
 /**
- * A consistent empty state layout used across all list screens.
- * Provides visual guidance and a prominent CTA to help users get started.
+ * A premium empty state layout used across all list screens.
+ * Provides visual guidance with icon, title, description, and prominent CTA.
+ * Fully Material Design 3 compliant with proper spacing and accessibility.
  */
 @Composable
 fun EmptyState(
@@ -34,45 +35,76 @@ fun EmptyState(
     modifier: Modifier = Modifier,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null,
+    secondaryAction: Pair<String, () -> Unit>? = null
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(Dimens.spaceExtraLarge),
+            .padding(Dimens.spaceLarge),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Icon with brand color
         Icon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(80.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
         )
 
         Spacer(modifier = Modifier.height(Dimens.spaceLarge))
 
+        // Title with semantic heading role for accessibility
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
+            style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
-            modifier = Modifier.semantics { heading() }
+            modifier = Modifier
+                .fillMaxWidth(0.85f)
+                .semantics { heading() }
         )
 
         Spacer(modifier = Modifier.height(Dimens.spaceSmall))
 
+        // Description text
         Text(
             text = description,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(0.8f)
+            modifier = Modifier.fillMaxWidth(0.85f)
         )
 
+        // Primary action button
         if (actionLabel != null && onAction != null) {
-            Spacer(modifier = Modifier.height(Dimens.spaceLarge))
-            Button(onClick = onAction) {
-                Text(actionLabel)
+            Spacer(modifier = Modifier.height(Dimens.spaceExtraLarge))
+            Button(
+                onClick = onAction,
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(Dimens.buttonHeight)
+            ) {
+                Text(
+                    text = actionLabel,
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+
+        // Secondary action (optional)
+        if (secondaryAction != null && actionLabel != null) {
+            Spacer(modifier = Modifier.height(Dimens.spaceSmall))
+            androidx.compose.material3.OutlinedButton(
+                onClick = secondaryAction.second,
+                modifier = Modifier
+                    .fillMaxWidth(0.6f)
+                    .height(Dimens.buttonHeight)
+            ) {
+                Text(
+                    text = secondaryAction.first,
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
         }
     }
